@@ -1,0 +1,8 @@
+*.*.swp
+*.o
+*.DS_store
+example*
+hw2*
+libssh*
+bin*
+mySFTP
