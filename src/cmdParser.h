@@ -2,17 +2,112 @@
 #define __CMD_PARSER_H__
 
 #include <string.h>
+#include <string>
 #include <vector>
+#include <unordered_map>
 #include "cmdCharDef.h"
 
+
+/******************/
+/* command status */
+/******************/
+enum cmdStat
+{
+    // command execution status
+    CMD_DONE        = 0,
+    CMD_ERROR       = 1,
+    CMD_EXIT        = 2,
+    CMD_EXECUTE     = 3,
+
+    // command option errors
+    CMD_OPT_MISSING = 4,
+    CMD_OPT_EXTRA   = 5,
+    CMD_OPT_ILLEGAL = 6,
+
+    // command registration
+    CMD_REG_FAIL    = 7,
+    CMD_REG_DONE    = 8,
+
+    CMD_DUMMY
+};
+
+/*****************/
+/* Error Handler */
+/*****************/
+class errorMgr
+{
+public:
+    errorMgr() {}
+    ~errorMgr() {}
+
+    void handle(const cmdStat&);
+
+    void setErrCmd(const std::string& s) const;
+    void setErrOpt(const std::string& s) const;
+
+private:
+    void cmdError(const cmdStat&);
+};
+
+/*****************/
+/* command class */
+/*****************/
+class cmdExec
+{
+public:
+    cmdExec() {}
+    ~cmdExec() {}
+
+    virtual cmdStat execute(const std::string&) const = 0;
+    virtual void    usage()                     const = 0;
+    virtual void    help()                      const = 0;
+
+    void setOptional( const std::string& s) { _opt = s; }
+    void setKeyWord( const std::string& s) { _key = s; }
+
+    // for error handling and verbosity
+    const char* getOptional() const { return _opt.c_str(); }
+    const char* getKeyWord() const { return _key.c_str(); }
+
+private:
+    std::string _opt;
+
+    // just for error printing, not really needed
+    std::string _key;
+};
+
+
+/*********/
+/* macro */
+/*********/
+#define cmdClass(T)                            \
+class T : public cmdExec                       \
+{                                              \
+public:                                        \
+    T() {}                                     \
+    ~T() {}                                    \
+                                               \
+    cmdStat execute(const std::string&) const; \
+    void    usage()   const;                   \
+    void    help()    const;                   \
+}
+
+
+/******************/
+/* command parser */
+/******************/
 class cmdParser
 {
 #define BUF_SIZE 65536
 #define HISTORY_SIZE 1000
 #define TAB_STOP 4
 #define PG_OFFSET 10
+
+typedef std::unordered_map<std::string, cmdExec*> cmdMAP;
+typedef std::pair<std::string, cmdExec*>          cmdKeyHandlerPair;
+
 public:
-    cmdParser(std::string prompt) : _prompt(prompt),
+    cmdParser(const char* prompt) : _prompt(prompt),
                                     _bufEnd(NULL),
                                     _bufPtr(NULL) {
         _history.clear();
@@ -21,10 +116,19 @@ public:
     }
     ~cmdParser() {}
 
-    void readCmd();
+    // register commands
+    void    regCmd();
+
+    // read commands
+    cmdStat readCmd();
 
 private:
-    void readChar(std::istream&);
+    cmdStat readChar(std::istream&);
+    cmdStat regEachCmd(std::string, size_t, cmdExec*);
+    cmdStat interpretateAndExecute() const;
+
+    cmdExec* getCmdHandler(const std::string&) const;
+
     void resetBuf();
     void printPrompt();
 
@@ -35,8 +139,9 @@ private:
     void deleteChar();
     void retrieveHistory(short);
     void newLineCmd();
+    void makeCopy();
 
-
+private:
     std::string  _prompt;
 
     char         _buf[BUF_SIZE];
@@ -49,6 +154,13 @@ private:
     std::string              _bufTmp;
     char*                    _bufTmpPtr;
     short                    _hisID;
+
+    // the map of each command to its class
+    // the map of each keyword to its minCmp
+    cmdMAP  _cmdMap;
+
+    // the error handler
+    errorMgr _errMgr;
 };
 
 #endif /* __CMD_PARSER_H__ */
