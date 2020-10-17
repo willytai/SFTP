@@ -32,30 +32,12 @@ enum cmdStat
 };
 
 /*****************/
-/* Error Handler */
-/*****************/
-class errorMgr
-{
-public:
-    errorMgr() {}
-    ~errorMgr() {}
-
-    void handle(const cmdStat&);
-
-    void setErrCmd(const std::string& s) const;
-    void setErrOpt(const std::string& s) const;
-
-private:
-    void cmdError(const cmdStat&);
-};
-
-/*****************/
 /* command class */
 /*****************/
 class cmdExec
 {
 public:
-    cmdExec() {}
+    cmdExec() : _flags(0) {}
     ~cmdExec() {}
 
     virtual cmdStat execute(const std::string&) const = 0;
@@ -64,17 +46,23 @@ public:
 
     void setOptional( const std::string& s) { _opt = s; }
     void setKeyWord( const std::string& s) { _key = s; }
+    void resetFlag() const { _flags = 0; }
 
     // for error handling and verbosity
     const char* getOptional() const { return _opt.c_str(); }
     const char* getKeyWord() const { return _key.c_str(); }
     const std::string& getOptionalStr() const { return _opt; }
+    const std::string& getKeyWordStr() const { return _key; }
+    std::string        getCmdStr() const { return _key+_opt; }
 
 private:
     std::string _opt;
 
     // just for error printing, not really needed
     std::string _key;
+
+protected:
+    mutable int _flags;
 };
 
 
@@ -92,6 +80,27 @@ public:                                        \
     void    usage()   const;                   \
     void    help()    const;                   \
 }
+
+/*****************/
+/* Error Handler */
+/*****************/
+class errorMgr
+{
+public:
+    errorMgr() {}
+    ~errorMgr() {}
+
+    void handle(const cmdStat&);
+
+    void setErrCmd  (const std::string&) const;
+    void setErrOpt  (const std::string&) const;
+    void setErrOpt  (const char&)        const;
+    void setErrHndlr(const cmdExec*)     const;
+
+private:
+    void cmdError();
+    void cmdOptIllegal();
+};
 
 
 /******************/
@@ -159,9 +168,6 @@ private:
     // the map of each command to its class
     // the map of each keyword to its minCmp
     cmdMAP  _cmdMap;
-
-    // the error handler
-    errorMgr _errMgr;
 };
 
 #endif /* __CMD_PARSER_H__ */

@@ -4,12 +4,14 @@
 #include <string>
 #include <vector>
 
+extern errorMgr errMgr;
+
 cmdStat cmdParser::readCmd() {
     cmdStat stat = this->readChar(cin);
     if ( stat == CMD_EXECUTE ) {
         stat = this->interpretateAndExecute();
     }
-    _errMgr.handle(stat);
+    errMgr.handle(stat);
     return stat;
 }
 
@@ -122,10 +124,7 @@ cmdStat cmdParser::interpretateAndExecute() const {
     // find the corresponding command class and execute
     cmdExec* cmdHandler;
     if ( (cmdHandler = this->getCmdHandler(cmd)) == NULL ) return CMD_ERROR;
-    else {
-        cout << "command recongnized: " << cmd << endl;
-        return cmdHandler->execute(opt);
-    }
+    else return cmdHandler->execute(opt);
 }
 
 /*****************************************
@@ -158,7 +157,7 @@ cmdExec* cmdParser::getCmdHandler(const std::string& cmd) const {
     }
 
     // error command
-    _errMgr.setErrCmd(cmd);
+    errMgr.setErrCmd(cmd);
     return NULL;
 }
 

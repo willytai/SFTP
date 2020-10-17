@@ -3,6 +3,8 @@
 #include "sftpSession.h"
 #include "cmdParser.h"
 
+errorMgr errMgr;
+
 int main(int argc, char *argv[]) {
     // TODO: commandline reader/parser is next
 
