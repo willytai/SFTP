@@ -20,6 +20,12 @@ cmdClass(rmCmd);
 cmdClass(chmodCmd);
 
 
+/***********************/
+/* for program control */
+/***********************/
+cmdClass(quitCmd);
+
+
 /************/
 /* for sftp */
 /************/

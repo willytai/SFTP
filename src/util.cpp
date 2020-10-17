@@ -16,8 +16,33 @@ bool readDir(const char* dir, std::vector<std::string>& container) {
     return true;
 }
 
-void parseTokens(const std::string&  buf, size_t length, std::vector<std::string>& tokens) {
+void parseTokens(const std::string& buf, std::vector<std::string>& tokens, char delimiter) {
 
+    // dummy check
+    if (buf.empty()) return;
+
+    size_t start = 0, end;
+
+    // get rid of leading spaces and check
+    for (; start < buf.length(); ++start) if (buf[start] != delimiter) break;
+    if (start == buf.length()) return;
+
+    // get rid of trailing spaces
+    size_t maxCheck = buf.length();
+    while (buf[maxCheck] == delimiter) --maxCheck;
+
+    end = start+1;
+    while ( end < maxCheck ) {
+        if (buf[end] == delimiter) {
+            tokens.push_back(buf.substr(start, end-start));
+            start = end+1;
+            while ( buf[start] == delimiter ) start++;
+            end = start+1;
+        }
+        else ++end;
+    }
+
+    tokens.push_back(buf.substr(start, end));
 }
 
 size_t strNcmp(const std::string& s1, const std::string& s2, size_t n) {

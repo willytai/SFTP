@@ -5,11 +5,12 @@
 #include <dirent.h>
 #include <vector>
 #include <string>
+#include "def.h"
 
 namespace UTIL
 {
 bool   readDir(const char*, std::vector<std::string>&);
-void   parseTokens(const std::string&, size_t, std::vector<std::string>&);
+void   parseTokens(const std::string&, std::vector<std::string>&, char delimiter = ' ');
 size_t strNcmp(const std::string&, const std::string&, size_t);
 }
 

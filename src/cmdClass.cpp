@@ -12,6 +12,7 @@ void cmdParser::regCmd() {
          this->regEachCmd("cd",    2, new cdCmd())    == CMD_REG_FAIL ||
          this->regEachCmd("mkdir", 5, new mkdirCmd()) == CMD_REG_FAIL ||
          this->regEachCmd("chmod", 5, new chmodCmd()) == CMD_REG_FAIL ||
+         this->regEachCmd("quit",  1, new chmodCmd()) == CMD_REG_FAIL ||
          this->regEachCmd("put",   1, new putCmd())   == CMD_REG_FAIL ||
          this->regEachCmd("get",   1, new getCmd())   == CMD_REG_FAIL  ) {
         fprintf(stderr, "Command registration failed.\n");
