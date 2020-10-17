@@ -68,6 +68,7 @@ public:
     // for error handling and verbosity
     const char* getOptional() const { return _opt.c_str(); }
     const char* getKeyWord() const { return _key.c_str(); }
+    const std::string& getOptionalStr() const { return _opt; }
 
 private:
     std::string _opt;

@@ -90,9 +90,14 @@ cmdStat cmdParser::regEachCmd(std::string cmd, size_t minCmp, cmdExec* cmdHandle
 
 cmdStat cmdParser::interpretateAndExecute() const {
 
-    // analyze the command keyword and its option
-    // ignore the white spaces in the beginning and end
+    /*
+     * analyze the command keyword and its option
+     * ignore the white spaces in the beginning and end
+     */
     size_t optEnd = _bufEnd - _buf;
+
+    // dummy check first
+    if ( optEnd == 0 ) return CMD_DONE;
     while ( _buf[optEnd-1] == ' ' ) {
         // command with entire white spaces
         if ( optEnd == 1 ) return CMD_DONE;
@@ -135,10 +140,23 @@ cmdStat cmdParser::interpretateAndExecute() const {
  *****************************************/
 cmdExec* cmdParser::getCmdHandler(const std::string& cmd) const {
     for (const auto& pair : _cmdMap) {
-        if ( UTIL::strNcmp(cmd, pair.first, std::min(cmd.size(), pair.first.size())) == 0) {
-            return pair.second;
+        const auto& cmdHandler = pair.second;
+        const auto& keyword    = pair.first;
+        const auto& optional   = cmdHandler->getOptionalStr();
+
+        if ( cmd.length() > keyword.length()+optional.length() ) continue;
+        else if ( cmd.length() > keyword.length() ) {
+            if ( UTIL::strNcmp(cmd, keyword+optional, cmd.size()) == 0 ) {
+                return cmdHandler;
+            }
+        }
+        else {
+            if ( UTIL::strNcmp(cmd, keyword, cmd.size()) == 0) {
+                return pair.second;
+            }
         }
     }
+
     // error command
     _errMgr.setErrCmd(cmd);
     return NULL;
