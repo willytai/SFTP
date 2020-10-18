@@ -17,8 +17,8 @@ DIRS   = bin
 
 TARGET = ../bin/$(EXEC)
 
-CFLAGS = -std=c++14 -O3 $(DEPENDDIR) #-fopenmp -fno-builtin-malloc -fno-builtin-calloc -fno-builtin-realloc -fno-builtin-free -ljemalloc
-#CFLAGS = -std=c++14 -g $(DEPENDDIR) #-fopenmp -fno-builtin-malloc -fno-builtin-calloc -fno-builtin-realloc -fno-builtin-free -ljemalloc
+#CFLAGS = -std=c++14 -O3 $(DEPENDDIR) #-fopenmp -fno-builtin-malloc -fno-builtin-calloc -fno-builtin-realloc -fno-builtin-free -ljemalloc
+CFLAGS = -std=c++14 -g $(DEPENDDIR) #-fopenmp -fno-builtin-malloc -fno-builtin-calloc -fno-builtin-realloc -fno-builtin-free -ljemalloc
 
 ifeq ($(STATIC), true)
 CFLAGS += -static
