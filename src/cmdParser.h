@@ -24,6 +24,9 @@ enum cmdStat
     CMD_OPT_EXTRA   = 5,
     CMD_OPT_ILLEGAL = 6,
 
+    // command execution error
+    CMD_EXEC_ERROR  = 9,
+
     // command registration
     CMD_REG_FAIL    = 7,
     CMD_REG_DONE    = 8,
@@ -92,14 +95,16 @@ public:
 
     void handle(const cmdStat&);
 
-    void setErrCmd  (const std::string&) const;
-    void setErrOpt  (const std::string&) const;
-    void setErrOpt  (const char&)        const;
-    void setErrHndlr(const cmdExec*)     const;
+    void setErrCmd        (const std::string&)       const;
+    void setErrOpt        (const std::string&)       const;
+    void setErrOpt        (const char&)              const;
+    void setErrHndlr      (const cmdExec*)           const;
+    void setErrEntryAndDir(const char*, const char*) const;
 
 private:
     void cmdError();
     void cmdOptIllegal();
+    void cmdExecError();
 };
 
 

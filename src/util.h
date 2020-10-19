@@ -20,7 +20,7 @@ bool   readDir(const char*, std::vector<dirent*>&);
 bool   readDir(const char*, std::vector<std::string>&);
 
 // Top API for retrieving file status
-bool   getEntryStat(const char*, struct LIST::EntryStat*);
+bool   getEntryStat(const char*, const char*, struct LIST::EntryStat*);
 
 // for retrieving file status
 void   getPermStr   (const mode_t& mode, char* modeStr);

@@ -1,5 +1,6 @@
 #include "util.h"
 #include <cstdio>
+#include <string>
 #include <vector>
 
 namespace UTIL
@@ -45,9 +46,13 @@ bool readDir(const char* dir, std::vector<dirent*>& container) { // returns the 
  *      struct timespec st_ctim;    // Time of last status change
  * }
  */
-bool getEntryStat(const char* filename, struct LIST::EntryStat* entryStat) {
+bool getEntryStat(const char* dirName, const char* filename, struct LIST::EntryStat* entryStat) {
+    std::string fullname = std::string(dirName);
+    if ( fullname.back() != '/' ) fullname += "/"+std::string(filename);
+    else fullname += std::string(filename);
+
     struct stat statbuf;
-    if ( stat(filename, &statbuf) != 0 ) return false;
+    if ( stat(fullname.c_str(), &statbuf) != 0 ) return false;
     getTypeChar (statbuf.st_mode, entryStat->en_type);
     getPermStr  (statbuf.st_mode, entryStat->en_perm);
     getXattrChar(filename,        entryStat->en_xattr);
