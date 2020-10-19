@@ -6,8 +6,6 @@
 errorMgr errMgr;
 
 int main(int argc, char *argv[]) {
-    // TODO: commandline reader/parser is next
-
     cmdParser* cmdMgr = new cmdParser("sftp");
     cmdMgr->regCmd();
     while ( cmdMgr->readCmd() != CMD_EXIT ) {}

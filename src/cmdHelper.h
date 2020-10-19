@@ -38,12 +38,13 @@ enum lsFlag
     HUMAN_READABLE = (1 << (int('h')-int('a'))), // -h
     LIST_ALL       = (1 << (int('a')-int('a'))), // -a
     LIST_LONG      = (1 << (int('l')-int('a'))), // -l
+    LIST_XATTR     = (1 << 26),                  // -@
 
     UNDEF_FLAG     = INT_MAX
 };
 
-lsFlag getFlag(const char& c);
-bool   checkFlag(const lsFlag& f, const int& stat);
+lsFlag getFlag    (const char& c);
+bool   checkFlag  (const lsFlag& f, const int& stat);
 bool   listPrint  (const dirCntMap& dirContent, bool all, bool human, bool printDirName, const char* cmd);
 bool   columnPrint(const dirCntMap& dirContent, bool all, bool human, bool printDirName, const char* cmd);
 
