@@ -1,0 +1,58 @@
+CSRCS     = $(wildcard *.cpp) $(wildcard *.c)
+CHDRS     = $(wildcard *.h)
+COBJS     = $(addsuffix .o, $(basename $(CSRCS)))
+
+EXTDIR    = ../../include
+INCDIR    = . $(EXTDIR) /usr/local/Cellar/libssh/0.9.5/include
+DPNIFLAG  = $(addprefix -I, $(INCDIR))
+LIBDIR    = ../../lib
+DPNLFLAG  = $(addprefix -L, $(LIBDIR))
+EXTLINK   = $(PKGNAME)LNK
+
+CXX  = g++
+CCC  = gcc
+AR   = ar cr
+ECHO = /bin/echo
+
+CFLAGS = -03 -std=c++14 $(PKGFLAG)
+CFLAGS = -g  -std=c++14 $(PKGFLAG)
+
+WFLAGS = -Wall -Wextra -pedantic-errors -Wconversion #-Werror
+
+top: $(EXTLINK) target
+
+%.o: %.cpp
+	@$(ECHO) "> compiling: $< ..."
+	@$(CXX) $(CFLAGS) $(WFLAGS) $(DPNIFLAG) -c -o $@ $<
+
+.PHONY: depend
+depend: .depend.mak
+.depend.mak: $(CHDRS) $(CSRCS)
+	@$(ECHO) Making dependencies ...
+	@$(CXX) -MM $(DPNIFLAG) $(CSRCS) > $@
+
+.PHONY: extheader
+extheader: .extheader.mak
+.extheader.mak: $(EXTHDRS)
+	@$(ECHO) "Linking external header files ..."
+	@rm -f $@
+	@$(ECHO) -n "$(EXTLINK): " > $@
+	@for hdr in $(EXTHDRS); \
+	do \
+		$(ECHO) -n "$(EXTDIR)/$$hdr " >> $@; \
+		rm -f $(EXTDIR)/$$hdr; \
+	done
+	@$(ECHO) >> $@
+	@for hdr in $(EXTHDRS); \
+	do \
+		$(ECHO) "$(EXTDIR)/$$hdr: $$hdr" >> $@; \
+		$(ECHO) "	@cd $(EXTDIR); ln -fs ../src/$(PKGNAME)/$$hdr ./" >> $@; \
+	done
+
+
+.PHONY: clean
+clean:
+	@rm -f $(COBJS)
+
+include .depend.mak
+include .extheader.mak

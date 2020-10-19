@@ -1,4 +1,5 @@
 #include "cmdParser.h"
+#include "cmdCharDef.h"
 #include "util.h"
 #include <cassert>
 #include <string>

@@ -1,5 +1,4 @@
 #include "cmdHelper.h"
-#include "util.h"
 
 extern errorMgr errMgr;
 
@@ -27,7 +26,7 @@ bool listpp(const char* dirName, const LIST::Files& entries, const bool& all, co
     // word length for each property
     int w_nlink = 0, w_usrname = 0, w_grname = 0, w_size = 0;
 
-    std::vector<struct LIST::EntryStat> entryStats;
+    std::vector<struct UTIL::EntryStat> entryStats;
     std::vector<bool> valid;
     entryStats.resize(entries.size());
     valid.resize(entries.size(), true);

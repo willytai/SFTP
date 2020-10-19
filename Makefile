@@ -2,44 +2,48 @@ STATIC ?= false
 
 ECHO   = /bin/echo
 EXEC   = mySFTP
-DIRS   = bin include lib
+LIBDIR = lib
+DIRS   = bin include $(LIBDIR)
 
-LIBS    = cmd util sftp
-SRCLIBS = $(addsuffix .a, $(addprefix lib, $(LIBS)))
+PKGS    = cmd util sftp
+INCLIB  = $(addprefix -l, $(PKGS))
+SRCLIBS = $(addsuffix .a, $(addprefix lib, $(PKGS)))
 
 all: dir libs main
+
+.PHONY: dir libs main
 
 dir:
 	@for dir in $(DIRS); \
 	do \
 		if [ ! -d $$dir ]; then \
 			mkdir $$dir; \
-			echo "Creating directory \"$$dir\" ..."; \
+			$(ECHO) "Creating directory \"$$dir\" ..."; \
 		fi; \
 	done
 
 libs:
-	@for pkg in $(LIBS); \
+	@for pkg in $(PKGS); \
 	do \
-		echo "Checking $$pkg ..."; \
+		$(ECHO) "Checking $$pkg ..."; \
 		$(MAKE) -C src/$$pkg -f makefile --no-print-directory PKGNAME=$$pkg; \
 	done
 
 
 main:
-	@echo "Checking main ..."
-	@$(MAKE) -C src/main -f makefile --no-print-directory EXEC=$(EXEC) STATIC=$(STATIC)
+	@$(ECHO) "Checking main ..."
+	@$(MAKE) -C src/main -f makefile --no-print-directory INCLIB="$(INCLIB)" EXEC=$(EXEC) STATIC=$(STATIC)
 	@ln -fs bin/$(EXEC) .
 
 clean:
-	@for pkg in $(LIBS); \
+	@for pkg in $(PKGS); \
 	do \
-		echo "Cleaning $$pkg ..."; \
+		$(ECHO) "Cleaning $$pkg ..."; \
 		$(MAKE) -C src/$$pkg -f makefile --no-print-directory PKGNAME=$$pkg clean; \
 	done
-	@echo "Cleaning main ..."
+	@$(ECHO) "Cleaning main ..."
 	@$(MAKE) -C src/main -f makefile --no-print-directory EXEC=$(EXEC) STATIC=$(STATIC) clean;
-	@echo "Removing $(SRCLIBS) ..."
-	@cd lib; rm -rf $(SRCLIBS)
-	@echo "Removing $(EXEC) ..."
+	@$(ECHO) "Removing $(SRCLIBS) ..."
+	@rm -rf $(LIBDIR)/$(SRCLIBS)
+	@$(ECHO) "Removing $(EXEC) ..."
 	@rm -f $(EXEC) bin/$(EXEC)

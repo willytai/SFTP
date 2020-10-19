@@ -1,6 +1,8 @@
 *.*.swp
 *.o
 *.DS_store
+include/*
+lib/*
 example*
 hw2*
 libssh*

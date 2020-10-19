@@ -46,7 +46,7 @@ bool readDir(const char* dir, std::vector<dirent*>& container) { // returns the 
  *      struct timespec st_ctim;    // Time of last status change
  * }
  */
-bool getEntryStat(const char* dirName, const char* filename, struct LIST::EntryStat* entryStat) {
+bool getEntryStat(const char* dirName, const char* filename, struct EntryStat* entryStat) {
     std::string fullname = std::string(dirName);
     if ( fullname.back() != '/' ) fullname += "/"+std::string(filename);
     else fullname += std::string(filename);
