@@ -1,5 +1,5 @@
 LIBNAME = lib$(PKGNAME).a
-TARGET  = $(LIBDIR)/$(LIBNAME)
+TARGET  = $(SRCLIBDIR)/$(LIBNAME)
 
 target: $(TARGET)
 
