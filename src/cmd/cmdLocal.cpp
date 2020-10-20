@@ -1,4 +1,5 @@
 #include "cmdClass.h"
+#include "cmdHelper.h"
 #include "util.h"
 #include <unordered_map>
 #include <vector>

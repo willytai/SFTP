@@ -9,6 +9,8 @@ LIBDIR    = ../../lib
 DPNLFLAG  = $(addprefix -L, $(LIBDIR))
 EXTLINK   = $(PKGNAME)LNK
 
+LIBCHECKPOINT = $(LIBDIR)/.lib.check
+
 CXX  = g++
 CCC  = gcc
 AR   = ar cr

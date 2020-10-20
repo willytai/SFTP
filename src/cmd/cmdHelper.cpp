@@ -1,4 +1,5 @@
 #include "cmdHelper.h"
+#include "cmdParser.h"
 
 extern errorMgr errMgr;
 

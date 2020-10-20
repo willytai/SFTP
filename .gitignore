@@ -2,7 +2,7 @@
 *.o
 *.DS_store
 include/*
-lib/*
+lib/*.a
 example*
 hw2*
 libssh*

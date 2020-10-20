@@ -2,7 +2,6 @@
 #define __CMD_CLASS_H__
 
 #include "cmdParser.h"
-#include "cmdHelper.h"
 
 /*************/
 /* for local */

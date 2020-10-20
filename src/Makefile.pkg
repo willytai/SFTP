@@ -6,3 +6,4 @@ target: $(TARGET)
 $(TARGET): $(COBJS)
 	@$(ECHO) "Building $(LIBNAME) ..."
 	@$(AR) $@ $(COBJS)
+	@touch $(LIBCHECKPOINT)
