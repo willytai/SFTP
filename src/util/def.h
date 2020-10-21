@@ -2,6 +2,7 @@
 #define __DEF_F__
 
 #include <iostream>
+#include <fstream>
 
 using std::cin;
 using std::cerr;

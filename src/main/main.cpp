@@ -8,7 +8,12 @@ errorMgr errMgr;
 int main(int argc, char *argv[]) {
     cmdParser* cmdMgr = new cmdParser("sftp");
     cmdMgr->regCmd();
-    while ( cmdMgr->readCmd() != CMD_EXIT ) {}
+    if ( argc == 2) {
+        cmdMgr->readFile(argv[1]);
+    }
+    else {
+        while ( cmdMgr->readCmd() != CMD_EXIT ) {}
+    }
     delete cmdMgr;
     return 0;
 

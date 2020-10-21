@@ -137,6 +137,11 @@ public:
     // read commands
     cmdStat readCmd();
 
+#ifdef DEV
+    void readFile(const char*);
+    cmdStat readCmdFile();
+#endif
+
 private:
     cmdStat readChar(std::istream&);
     cmdStat regEachCmd(std::string, size_t, cmdExec*);
@@ -173,6 +178,10 @@ private:
     // the map of each command to its class
     // the map of each keyword to its minCmp
     cmdMAP  _cmdMap;
+
+#ifdef DEV
+    std::ifstream _file;
+#endif
 };
 
 #endif /* __CMD_PARSER_H__ */

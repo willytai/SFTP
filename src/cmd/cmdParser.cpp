@@ -353,3 +353,25 @@ void cmdParser::makeCopy() {
         _bufTmp[i] = _buf[i];
     }
 }
+
+#ifdef DEV
+void cmdParser::readFile(const char* filename) {
+    _file.open(filename);
+    if ( !_file.good() ) {
+        std::string msg = "readFile: " + std::string(filename);
+        perror(msg.c_str());
+        exit(-1);
+    }
+
+    this->readCmdFile();
+}
+
+cmdStat cmdParser::readCmdFile() {
+    cmdStat stat = this->readChar(_file);
+    if ( stat == CMD_EXECUTE ) {
+        stat = this->interpretateAndExecute();
+    }
+    errMgr.handle(stat);
+    return stat;
+}
+#endif

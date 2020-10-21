@@ -54,3 +54,17 @@ clean:
 	done
 	@$(ECHO) "Removing $(EXEC) ..."
 	@rm -f $(EXEC) bin/$(EXEC)
+
+.PHONY: tags
+tags: ctags
+ctags:
+	@rm -f src/tags
+	@for pkg in $(PKGS); \
+	do \
+		$(ECHO) "Tagging $$pkg ... "; \
+		cd src; \
+		ctags -a $$pkg/*.cpp $$pkg/*.h; \
+		cd ..; \
+	done
+	@$(ECHO) "Tagging main ... "
+	@cd src; ctags -a main/*.cpp main/*.h;
