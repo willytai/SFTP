@@ -19,8 +19,8 @@ CXX  = g++
 CCC  = gcc
 ECHO = /bin/echo
 
-CFLAGS = -g -std=c++14 $(PKGFLAG)
 CFLAGS = -O3 -std=c++14 $(PKGFLAG)
+CFLAGS = -g -std=c++14 $(PKGFLAG)
 
 WFLAGS = -Wall -Wextra -pedantic-errors -Wconversion# -Werror
 

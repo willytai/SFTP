@@ -1,5 +1,5 @@
-lls: dummy/fuck: No such file or directory
-lls: dummy/shit: No such file or directory
+lls: dirforcheck/fuck: No such file or directory
+lls: dirforcheck/shit: No such file or directory
 lls: nosuchfile: No such file or directory
 lls: ../thisisbullshit: No such file or directory
 lls: ../thisischianger: No such file or directory

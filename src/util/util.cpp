@@ -139,12 +139,12 @@ void parseTokens(const std::string& buf, std::vector<std::string>& tokens, char 
     for (; start < buf.length(); ++start) if (buf[start] != delimiter) break;
     if (start == buf.length()) return;
 
-    // get rid of trailing spaces
-    size_t maxCheck = buf.length();
+    // get rid of trailing delimiters
+    size_t maxCheck = buf.length()-1;
     while (buf[maxCheck] == delimiter) --maxCheck;
 
     end = start+1;
-    while ( end < maxCheck ) {
+    while ( end <= maxCheck ) {
         if (buf[end] == delimiter) {
             tokens.push_back(buf.substr(start, end-start));
             start = end+1;
@@ -154,7 +154,7 @@ void parseTokens(const std::string& buf, std::vector<std::string>& tokens, char 
         else ++end;
     }
 
-    tokens.push_back(buf.substr(start, end));
+    tokens.push_back(buf.substr(start, end-start));
 }
 
 int wLength(size_t val) {

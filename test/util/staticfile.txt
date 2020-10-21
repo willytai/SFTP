@@ -1,0 +1,2 @@
+this is a static file, the access is changed by the super user to 400 after creation
+modification is not allowed

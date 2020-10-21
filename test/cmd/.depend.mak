@@ -1,2 +1,2 @@
-lls.o: lls.cpp ../catch.hpp ../outputRedirect.h ../../include/cmdParser.h \
+lls.o: lls.cpp ../catch.hpp ../testHelper.h ../../include/cmdParser.h \
  ../../include/def.h

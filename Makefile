@@ -46,6 +46,13 @@ test:
 		$(MAKE) -C test/$$pkg -f makefile --no-print-directory INCLIB="$(INCLIB)"; \
 	done
 
+testclean:
+	@for pkg in $(PKGS); \
+	do \
+		$(ECHO) "Cleaning test: $$pkg ..."; \
+		$(MAKE) -C test/$$pkg -f makefile --no-print-directory INCLIB="$(INCLIB)" clean; \
+	done
+
 clean:
 	@for pkg in $(PKGS); \
 	do \
