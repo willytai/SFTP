@@ -363,7 +363,8 @@ void cmdParser::readFile(const char* filename) {
         exit(-1);
     }
 
-    this->readCmdFile();
+    while ( this->readCmdFile() != CMD_EXIT ) {}
+    _file.close();
 }
 
 cmdStat cmdParser::readCmdFile() {

@@ -1,0 +1,5 @@
+lls -l -z
+lls -la -q
+lls -lah -p
+lls -a -rtyu
+lls -hl -rty -a -nm -r -h -yt -l

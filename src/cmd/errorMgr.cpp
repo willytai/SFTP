@@ -1,6 +1,7 @@
 #include "cmdParser.h"
+#include <set>
 
-static std::vector<std::string> ErrorOPT;
+static std::set<std::string> ErrorOPT;
 
 static std::string ErrorCMD;
 static const cmdExec* ErrorHandler;
@@ -12,12 +13,16 @@ void errorMgr::setErrCmd(const std::string& s) const {
 }
 
 void errorMgr::setErrOpt(const std::string& s) const {
-    ErrorOPT.push_back(s);
+    if ( ErrorOPT.find(s) == ErrorOPT.end() ) {
+        ErrorOPT.insert(s);
+    }
 }
 
 void errorMgr::setErrOpt(const char& c) const {
-    ErrorOPT.resize(ErrorOPT.size()+1);
-    ErrorOPT.back().push_back(c);
+    std::string tmp;
+    tmp.resize(1);
+    tmp.back() = c;
+    this->setErrOpt(tmp);
 }
 
 void errorMgr::setErrHndlr(const cmdExec* h) const {

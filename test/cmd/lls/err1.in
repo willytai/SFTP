@@ -1,0 +1,5 @@
+lls -l dummy/fuck
+lls -l dummy/shit
+lls -l nosuchfile
+lls -l ../thisisbullshit
+lls -l ../thisischianger

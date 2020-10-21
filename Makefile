@@ -38,6 +38,13 @@ libs:
 		$(MAKE) -C src/$$pkg -f makefile --no-print-directory PKGNAME=$$pkg; \
 	done
 
+.PHONY: test
+test:
+	@for pkg in $(PKGS); \
+	do \
+		$(ECHO) "Compiling test binary for $$pkg ..."; \
+		$(MAKE) -C test/$$pkg -f makefile --no-print-directory INCLIB="$(INCLIB)"; \
+	done
 
 clean:
 	@for pkg in $(PKGS); \

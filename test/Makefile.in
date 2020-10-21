@@ -1,10 +1,10 @@
-CSRCS     = $(wildcard *.cpp) $(wildcard *.c)
-CHDRS     = $(wildcard *.h)
+CSRCS     = $(wildcard *.cpp)
+CHDRS     = $(wildcard $(EXTDIR)/*.h)
 COBJS     = $(addsuffix .o, $(basename $(CSRCS)))
 
 EXTDIR    = ../../include#                               -- external include dir
 INCLIBSSH = /usr/local/Cellar/libssh/0.9.5/include#      -- include dir for libssh
-INCDIR    = . $(EXTDIR) $(INCLIBSSH)#                    -- include dirs for entire program
+INCDIR    = $(EXTDIR) $(INCLIBSSH)#                      -- include dirs for entire program
 DPNIFLAG  = $(addprefix -I, $(INCDIR))#                  -- -I flags for compiler
 
 LIBLIBSSH = /usr/local/Cellar/libssh/0.9.5/lib#          -- lib dir for libssh
@@ -12,21 +12,19 @@ SRCLIBDIR = ../../lib#                                   -- lib dir for source c
 LIBDIR    = $(SRCLIBDIR) $(LIBLIBSSH)#                   -- lib dirs for entire program
 DPNLFLAG  = $(addprefix -L, $(LIBDIR))#                  -- -L flags for complier
 
-EXTLINK       = $(PKGNAME)LNK#                           -- rule name of external includes for source libs
 LIBCHECKPOINT = $(SRCLIBDIR)/.lib.check#                 -- the checkpoint file to flag when any source \
                                                             lib is re-compiled
 
 CXX  = g++
 CCC  = gcc
-AR   = ar cr
 ECHO = /bin/echo
 
+CFLAGS = -g -std=c++14 $(PKGFLAG)
 CFLAGS = -O3 -std=c++14 $(PKGFLAG)
-CFLAGS = -g  -std=c++14 $(PKGFLAG)
 
 WFLAGS = -Wall -Wextra -pedantic-errors -Wconversion# -Werror
 
-top: $(EXTLINK) target
+top: target
 
 %.o: %.cpp
 	@$(ECHO) "> compiling: $< ..."
@@ -38,28 +36,4 @@ depend: .depend.mak
 	@$(ECHO) Making dependencies ...
 	@$(CXX) -MM $(DPNIFLAG) $(CSRCS) > $@
 
-.PHONY: extheader
-extheader: .extheader.mak
-.extheader.mak: $(EXTHDRS)
-	@$(ECHO) "Linking external header files ..."
-	@rm -f $@
-	@$(ECHO) -n "$(EXTLINK): " > $@
-	@for hdr in $(EXTHDRS); \
-	do \
-		$(ECHO) -n "$(EXTDIR)/$$hdr " >> $@; \
-		rm -f $(EXTDIR)/$$hdr; \
-	done
-	@$(ECHO) >> $@
-	@for hdr in $(EXTHDRS); \
-	do \
-		$(ECHO) "$(EXTDIR)/$$hdr: $$hdr" >> $@; \
-		$(ECHO) "	@cd $(EXTDIR); ln -fs ../src/$(PKGNAME)/$$hdr ./" >> $@; \
-	done
-
-
-.PHONY: clean
-clean:
-	@rm -f $(COBJS)
-
 include .depend.mak
-include .extheader.mak
