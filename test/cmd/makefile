@@ -17,7 +17,9 @@ $(BINDIR):
 run:
 	@for exec in $(TESTEXEC); \
 	do \
+		tput setaf 6; \
 		$(ECHO) "----------- [Test] test/$(PKGNAME)/$$exec -----------"; \
+		tput setaf 7; \
 		./$$exec -d yes; \
 	done
 
