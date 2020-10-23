@@ -14,6 +14,13 @@ $(BINDIR)/%.bin: %.o $(LIBCHECKPOINT)
 $(BINDIR):
 	@mkdir $(BINDIR)
 
+run:
+	@for exec in $(TESTEXEC); \
+	do \
+		$(ECHO) "----------- [Test] test/$(PKGNAME)/$$exec -----------"; \
+		./$$exec -d yes; \
+	done
+
 .PHONY: clean
 clean:
 	@rm -f $(BINDIR)/*.bin

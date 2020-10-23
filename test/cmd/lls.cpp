@@ -21,8 +21,8 @@ TEST_CASE( "Error Message", "[lls]" )
     {
         cerrToString(&cerrBuf);
         coutToString(&coutBuf);
-        cmdMgr->readFile("../lls/err1.in");
-        REQUIRE( readGolden("../lls/err1.out", goldenBuffer) );
+        cmdMgr->readFile("./lls/err1.in");
+        REQUIRE( readGolden("./lls/err1.out", goldenBuffer) );
         REQUIRE( goldenBuffer.size() == cerrBuf.str().size() );
         REQUIRE( strncmp(cerrBuf.str().c_str(), goldenBuffer.c_str(), goldenBuffer.size()) == 0 );
         cerrReset(&cerrBuf);
@@ -32,8 +32,8 @@ TEST_CASE( "Error Message", "[lls]" )
     {
         cerrToString(&cerrBuf);
         coutToString(&coutBuf);
-        cmdMgr->readFile("../lls/err2.in");
-        REQUIRE( readGolden("../lls/err2.out", goldenBuffer) );
+        cmdMgr->readFile("./lls/err2.in");
+        REQUIRE( readGolden("./lls/err2.out", goldenBuffer) );
         REQUIRE( goldenBuffer.size() == cerrBuf.str().size() );
         REQUIRE( strncmp(cerrBuf.str().c_str(), goldenBuffer.c_str(), goldenBuffer.size()) == 0 );
         cerrReset(&cerrBuf);
@@ -64,8 +64,8 @@ TEST_CASE( "Listing Output", "[lls]" )
     {
         cerrToString(&cerrBuf);
         coutToString(&coutBuf);
-        cmdMgr->readFile("../lls/lls1.in");
-        REQUIRE( readGolden("../lls/lls1.out", goldenBuffer) );
+        cmdMgr->readFile("./lls/lls1.in");
+        REQUIRE( readGolden("./lls/lls1.out", goldenBuffer) );
         REQUIRE( goldenBuffer.size() == coutBuf.str().size() );
         REQUIRE( strncmp(coutBuf.str().c_str(), goldenBuffer.c_str(), goldenBuffer.size()) == 0 );
         cerrReset(&cerrBuf);
@@ -73,8 +73,8 @@ TEST_CASE( "Listing Output", "[lls]" )
 
         cerrToString(&cerrBuf);
         coutToString(&coutBuf);
-        cmdMgr->readFile("../lls/lls2.in");
-        REQUIRE( readGolden("../lls/lls2.out", goldenBuffer) );
+        cmdMgr->readFile("./lls/lls2.in");
+        REQUIRE( readGolden("./lls/lls2.out", goldenBuffer) );
         REQUIRE( goldenBuffer.size() == coutBuf.str().size() );
         REQUIRE( strncmp(coutBuf.str().c_str(), goldenBuffer.c_str(), goldenBuffer.size()) == 0 );
         cerrReset(&cerrBuf);
@@ -82,8 +82,8 @@ TEST_CASE( "Listing Output", "[lls]" )
 
         cerrToString(&cerrBuf);
         coutToString(&coutBuf);
-        cmdMgr->readFile("../lls/lls3.in");
-        REQUIRE( readGolden("../lls/lls3.out", goldenBuffer) );
+        cmdMgr->readFile("./lls/lls3.in");
+        REQUIRE( readGolden("./lls/lls3.out", goldenBuffer) );
         REQUIRE( goldenBuffer.size() == coutBuf.str().size() );
         REQUIRE( strncmp(coutBuf.str().c_str(), goldenBuffer.c_str(), goldenBuffer.size()) == 0 );
         cerrReset(&cerrBuf);
@@ -91,8 +91,8 @@ TEST_CASE( "Listing Output", "[lls]" )
 
         cerrToString(&cerrBuf);
         coutToString(&coutBuf);
-        cmdMgr->readFile("../lls/lls4.in");
-        REQUIRE( readGolden("../lls/lls4.out", goldenBuffer) );
+        cmdMgr->readFile("./lls/lls4.in");
+        REQUIRE( readGolden("./lls/lls4.out", goldenBuffer) );
         REQUIRE( goldenBuffer.size() == coutBuf.str().size() );
         REQUIRE( strncmp(coutBuf.str().c_str(), goldenBuffer.c_str(), goldenBuffer.size()) == 0 );
         cerrReset(&cerrBuf);
@@ -100,8 +100,8 @@ TEST_CASE( "Listing Output", "[lls]" )
 
         cerrToString(&cerrBuf);
         coutToString(&coutBuf);
-        cmdMgr->readFile("../lls/lls5.in");
-        REQUIRE( readGolden("../lls/lls5.out", goldenBuffer) );
+        cmdMgr->readFile("./lls/lls5.in");
+        REQUIRE( readGolden("./lls/lls5.out", goldenBuffer) );
         REQUIRE( goldenBuffer.size() == coutBuf.str().size() );
         REQUIRE( strncmp(coutBuf.str().c_str(), goldenBuffer.c_str(), goldenBuffer.size()) == 0 );
         cerrReset(&cerrBuf);
@@ -109,8 +109,8 @@ TEST_CASE( "Listing Output", "[lls]" )
 
         cerrToString(&cerrBuf);
         coutToString(&coutBuf);
-        cmdMgr->readFile("../lls/lls6.in");
-        REQUIRE( readGolden("../lls/lls6.out", goldenBuffer) );
+        cmdMgr->readFile("./lls/lls6.in");
+        REQUIRE( readGolden("./lls/lls6.out", goldenBuffer) );
         REQUIRE( goldenBuffer.size() == coutBuf.str().size() );
         REQUIRE( strncmp(coutBuf.str().c_str(), goldenBuffer.c_str(), goldenBuffer.size()) == 0 );
         cerrReset(&cerrBuf);
@@ -118,8 +118,8 @@ TEST_CASE( "Listing Output", "[lls]" )
 
         cerrToString(&cerrBuf);
         coutToString(&coutBuf);
-        cmdMgr->readFile("../lls/lls7.in");
-        REQUIRE( readGolden("../lls/lls7.out", goldenBuffer) );
+        cmdMgr->readFile("./lls/lls7.in");
+        REQUIRE( readGolden("./lls/lls7.out", goldenBuffer) );
         REQUIRE( goldenBuffer.size() == coutBuf.str().size() );
         REQUIRE( strncmp(coutBuf.str().c_str(), goldenBuffer.c_str(), goldenBuffer.size()) == 0 );
         cerrReset(&cerrBuf);

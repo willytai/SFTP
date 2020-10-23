@@ -157,11 +157,11 @@ void parseTokens(const std::string& buf, std::vector<std::string>& tokens, char 
     tokens.push_back(buf.substr(start, end-start));
 }
 
-int wLength(size_t val) {
-    return wLength((int)val);
+int wLength(int val) {
+    return wLength((size_t)val);
 }
 
-int wLength(int val) {
+int wLength(size_t val) {
     int ret = 1;
     while ( val / 10 ) {
         ++ret;

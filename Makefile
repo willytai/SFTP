@@ -53,6 +53,13 @@ testclean:
 		$(MAKE) -C test/$$pkg -f makefile --no-print-directory INCLIB="$(INCLIB)" clean; \
 	done
 
+.PHONY: runtest
+runtest:
+	@for pkg in $(PKGS); \
+	do \
+		$(MAKE) -C test/$$pkg -f makefile --no-print-directory PKGNAME=$$pkg run; \
+	done
+
 clean:
 	@for pkg in $(PKGS); \
 	do \

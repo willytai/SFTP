@@ -1,5 +1,5 @@
-sftp> lls ./../lls/dirforcheck -l
--rw-r--r--.  1 willytai staff 143 Oct 22 19:08 file2.txt
--rw-r--r--.  1 willytai staff   7 Oct 22 19:09 file3.txt
--rw-r--r--.  1 willytai staff   2 Oct 22 19:08 file1.txt
+sftp> lls ./lls/dirforcheck -l
+-r--r--r--.  1 willytai staff 143 Oct 22 23:42 file2.txt
+-r--r--r--.  1 willytai staff   7 Oct 22 23:42 file3.txt
+-r--r--r--.  1 willytai staff   2 Oct 22 23:42 file1.txt
 sftp> 

@@ -1,1 +1,1 @@
-lls -l ../lls/dirforcheck -h
+lls -l lls/dirforcheck -h
