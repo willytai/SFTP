@@ -1,5 +1,5 @@
 #define CATCH_CONFIG_MAIN
-#include "../catch.hpp"
+#include <catch2/catch.hpp>
 #include "util.h"
 
 TEST_CASE("readDir", "[UTIL]")
@@ -36,16 +36,18 @@ TEST_CASE("readDir", "[UTIL]")
 }
 TEST_CASE("getEntryStat", "[UTIL]")
 {
-    struct UTIL::EntryStat stat;
     SECTION("different ways of passing dir path")
     {
-        REQUIRE( UTIL::getEntryStat("./dirforcheck/", "test.txt", &stat) == true );
+        struct UTIL::EntryStat stat;
         REQUIRE( UTIL::getEntryStat("./dirforcheck", "test.txt", &stat) == true );
         REQUIRE( UTIL::getEntryStat("dirforcheck/", "test.txt", &stat) == true );
         REQUIRE( UTIL::getEntryStat("dirforcheck", "test.txt", &stat) == true );
     }
     SECTION("entry content")
     {
+        struct UTIL::EntryStat stat;
+        REQUIRE( UTIL::getEntryStat("./dirforcheck/", "test.txt", &stat) == true );
+
         REQUIRE( stat.en_type == '-' );
         REQUIRE( strncmp(stat.en_perm, "r--r--r--", 10) == 0 );
         #ifdef __APPLE__
@@ -58,8 +60,8 @@ TEST_CASE("getEntryStat", "[UTIL]")
 
         // these two may differ when "test.txt" is downloaded to different environment
         // don't wory to much if it fails
-        INFO("The username/groupname info test may fail due to different systems.");
-        INFO("No need to worry if these two are the only failed case.");
+        UNSCOPED_INFO("The username/groupname info test may fail due to different systems.");
+        UNSCOPED_INFO("No need to worry if these two are the only failed case.");
         CHECK( strncmp(stat.en_usrname, "willytai", 9) == 0 );
         CHECK( strncmp(stat.en_grname, "staff", 6) == 0 );
 
