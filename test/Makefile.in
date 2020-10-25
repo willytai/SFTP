@@ -4,10 +4,12 @@ COBJS     = $(addsuffix .o, $(basename $(CSRCS)))
 
 EXTDIR    = ../../include#                               -- external include dir
 INCLIBSSH = /usr/local/Cellar/libssh/0.9.5/include#      -- include dir for libssh
-INCDIR    = $(EXTDIR) $(INCLIBSSH)#                      -- include dirs for entire program
+INCLIBCTH = /usr/local/Cellar/catch2/2.13.2/include#     -- include dir for catch2
+INCDIR    = $(EXTDIR) $(INCLIBSSH) $(INCLIBCTH)#         -- include dirs for entire program
 DPNIFLAG  = $(addprefix -I, $(INCDIR))#                  -- -I flags for compiler
 
 LIBLIBSSH = /usr/local/Cellar/libssh/0.9.5/lib#          -- lib dir for libssh
+LIBLIBCTH = /usr/local/Cellar/catch2/2.13.2/lib#         -- lib dir for catch2
 SRCLIBDIR = ../../lib#                                   -- lib dir for source code
 LIBDIR    = $(SRCLIBDIR) $(LIBLIBSSH)#                   -- lib dirs for entire program
 DPNLFLAG  = $(addprefix -L, $(LIBDIR))#                  -- -L flags for complier

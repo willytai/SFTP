@@ -53,6 +53,10 @@ size_t strNcmp(const std::string&, const std::string&, size_t);
 int wLength(size_t);
 int wLength(int);
 int wLength(const char*);
+
+
+// size of the terminal
+int getTermWidth();
 }
 
 #endif /* __UTIL_H__ */

@@ -1,5 +1,5 @@
 #define CATCH_CONFIG_MAIN
-#include "../catch.hpp"
+#include <catch2/catch.hpp>
 #include "../testHelper.h"
 #include "cmdParser.h"
 
@@ -17,31 +17,25 @@ TEST_CASE( "Error Message", "[lls]" )
     std::stringstream coutBuf;
     std::string goldenBuffer;
 
-    SECTION( "not file or directory error" )
-    {
-        cerrToString(&cerrBuf);
-        coutToString(&coutBuf);
-        cmdMgr->readFile("./lls/err1.in");
-        REQUIRE( readGolden("./lls/err1.out", goldenBuffer) );
-        REQUIRE( goldenBuffer.size() == cerrBuf.str().size() );
-        REQUIRE( strncmp(cerrBuf.str().c_str(), goldenBuffer.c_str(), goldenBuffer.size()) == 0 );
-        cerrReset(&cerrBuf);
-        coutReset(&coutBuf);
-    }
-    SECTION( "option error" )
-    {
-        cerrToString(&cerrBuf);
-        coutToString(&coutBuf);
-        cmdMgr->readFile("./lls/err2.in");
-        REQUIRE( readGolden("./lls/err2.out", goldenBuffer) );
-        REQUIRE( goldenBuffer.size() == cerrBuf.str().size() );
-        REQUIRE( strncmp(cerrBuf.str().c_str(), goldenBuffer.c_str(), goldenBuffer.size()) == 0 );
-        cerrReset(&cerrBuf);
-        coutReset(&coutBuf);
+    // define macro for all test sections
+    # define TEST_SECTION(TCASE, ERROR)                                                             \
+    SECTION( "["#TCASE"] "#ERROR)                                                                 \
+    {                                                                                               \
+        cerrToString(&cerrBuf);                                                                     \
+        coutToString(&coutBuf);                                                                     \
+        cmdMgr->readFile("./lls/"#TCASE".in");                                                      \
+        REQUIRE( readGolden("./lls/"#TCASE".out", goldenBuffer) );                                  \
+        REQUIRE( goldenBuffer.size() == cerrBuf.str().size() );                                     \
+        REQUIRE( strncmp(cerrBuf.str().c_str(), goldenBuffer.c_str(), goldenBuffer.size()) == 0 );  \
+        cerrReset(&cerrBuf);                                                                        \
+        coutReset(&coutBuf);                                                                        \
     }
 
+    TEST_SECTION( err1, not file or directory error);
+    TEST_SECTION( err2, option error);
 
     delete cmdMgr;
+    #undef TEST_SECTION
 }
 TEST_CASE( "Listing Output", "[lls]" )
 {
@@ -60,71 +54,34 @@ TEST_CASE( "Listing Output", "[lls]" )
     std::stringstream coutBuf;
     std::string goldenBuffer;
 
-    SECTION( "listing one dir" )
-    {
-        cerrToString(&cerrBuf);
-        coutToString(&coutBuf);
-        cmdMgr->readFile("./lls/lls1.in");
-        REQUIRE( readGolden("./lls/lls1.out", goldenBuffer) );
-        REQUIRE( goldenBuffer.size() == coutBuf.str().size() );
-        REQUIRE( strncmp(coutBuf.str().c_str(), goldenBuffer.c_str(), goldenBuffer.size()) == 0 );
-        cerrReset(&cerrBuf);
-        coutReset(&coutBuf);
-
-        cerrToString(&cerrBuf);
-        coutToString(&coutBuf);
-        cmdMgr->readFile("./lls/lls2.in");
-        REQUIRE( readGolden("./lls/lls2.out", goldenBuffer) );
-        REQUIRE( goldenBuffer.size() == coutBuf.str().size() );
-        REQUIRE( strncmp(coutBuf.str().c_str(), goldenBuffer.c_str(), goldenBuffer.size()) == 0 );
-        cerrReset(&cerrBuf);
-        coutReset(&coutBuf);
-
-        cerrToString(&cerrBuf);
-        coutToString(&coutBuf);
-        cmdMgr->readFile("./lls/lls3.in");
-        REQUIRE( readGolden("./lls/lls3.out", goldenBuffer) );
-        REQUIRE( goldenBuffer.size() == coutBuf.str().size() );
-        REQUIRE( strncmp(coutBuf.str().c_str(), goldenBuffer.c_str(), goldenBuffer.size()) == 0 );
-        cerrReset(&cerrBuf);
-        coutReset(&coutBuf);
-
-        cerrToString(&cerrBuf);
-        coutToString(&coutBuf);
-        cmdMgr->readFile("./lls/lls4.in");
-        REQUIRE( readGolden("./lls/lls4.out", goldenBuffer) );
-        REQUIRE( goldenBuffer.size() == coutBuf.str().size() );
-        REQUIRE( strncmp(coutBuf.str().c_str(), goldenBuffer.c_str(), goldenBuffer.size()) == 0 );
-        cerrReset(&cerrBuf);
-        coutReset(&coutBuf);
-
-        cerrToString(&cerrBuf);
-        coutToString(&coutBuf);
-        cmdMgr->readFile("./lls/lls5.in");
-        REQUIRE( readGolden("./lls/lls5.out", goldenBuffer) );
-        REQUIRE( goldenBuffer.size() == coutBuf.str().size() );
-        REQUIRE( strncmp(coutBuf.str().c_str(), goldenBuffer.c_str(), goldenBuffer.size()) == 0 );
-        cerrReset(&cerrBuf);
-        coutReset(&coutBuf);
-
-        cerrToString(&cerrBuf);
-        coutToString(&coutBuf);
-        cmdMgr->readFile("./lls/lls6.in");
-        REQUIRE( readGolden("./lls/lls6.out", goldenBuffer) );
-        REQUIRE( goldenBuffer.size() == coutBuf.str().size() );
-        REQUIRE( strncmp(coutBuf.str().c_str(), goldenBuffer.c_str(), goldenBuffer.size()) == 0 );
-        cerrReset(&cerrBuf);
-        coutReset(&coutBuf);
-
-        cerrToString(&cerrBuf);
-        coutToString(&coutBuf);
-        cmdMgr->readFile("./lls/lls7.in");
-        REQUIRE( readGolden("./lls/lls7.out", goldenBuffer) );
-        REQUIRE( goldenBuffer.size() == coutBuf.str().size() );
-        REQUIRE( strncmp(coutBuf.str().c_str(), goldenBuffer.c_str(), goldenBuffer.size()) == 0 );
-        cerrReset(&cerrBuf);
-        coutReset(&coutBuf);
+    // define macro for all test sections
+    #define TEST_SECTION(T)                                                                         \
+    SECTION( "["#T"] single directory" )                                                         \
+    {                                                                                               \
+        cerrToString(&cerrBuf);                                                                     \
+        coutToString(&coutBuf);                                                                     \
+        cmdMgr->readFile("./lls/"#T".in");                                                          \
+        UNSCOPED_INFO( "can't open golden answer" );                                                \
+        CHECK( readGolden("./lls/"#T".out", goldenBuffer) );                                        \
+        UNSCOPED_INFO( "\033[36m-------------------- result start --------------------\033[37m" );  \
+        UNSCOPED_INFO( coutBuf.str().c_str() );                                                     \
+        UNSCOPED_INFO( "\033[36m--------------------  result end  --------------------\033[37m" );  \
+        UNSCOPED_INFO( "\033[36m-------------------- golden start --------------------\033[37m" );  \
+        UNSCOPED_INFO( goldenBuffer.c_str() );                                                      \
+        UNSCOPED_INFO( "\033[36m--------------------  golden end  --------------------\033[32m" );  \
+        CHECK( strncmp(coutBuf.str().c_str(), goldenBuffer.c_str(), goldenBuffer.size()) == 0 );    \
+        cerrReset(&cerrBuf);                                                                        \
+        coutReset(&coutBuf);                                                                        \
     }
 
+    TEST_SECTION(lls1);
+    TEST_SECTION(lls2);
+    TEST_SECTION(lls3);
+    TEST_SECTION(lls4);
+    TEST_SECTION(lls5);
+    TEST_SECTION(lls6);
+    TEST_SECTION(lls7);
+
     delete cmdMgr;
+    #undef TEST_SECTION
 }

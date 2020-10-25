@@ -29,6 +29,9 @@ cmdStat llsCmd::execute(const std::string& option) const {
         else flags += tok.substr(1);
     }
 
+    // default listing directory
+    if ( queryDir.size() == 0 ) queryDir.push_back("./");
+
     // check options
     bool illegalOpt = false;
     this->resetFlag();

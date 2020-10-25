@@ -19,7 +19,7 @@ run:
 	do \
 		tput setaf 6; \
 		$(ECHO) "----------- [Test] test/$(PKGNAME)/$$exec -----------"; \
-		tput setaf 7; \
+		tput setaf 2; \
 		./$$exec -d yes; \
 	done
 

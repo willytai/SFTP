@@ -1,4 +1,6 @@
 #include "util.h"
+#include <sys/ioctl.h>
+#include <unistd.h>
 #include <cstdio>
 #include <string>
 #include <vector>
@@ -181,4 +183,11 @@ size_t strNcmp(const std::string& s1, const std::string& s2, size_t n) {
     }
     return ret;
 }
+
+int getTermWidth() {
+    struct winsize ws;
+    ioctl(STDIN_FILENO, TIOCGWINSZ, &ws);
+    return ws.ws_col;
+}
+
 }
