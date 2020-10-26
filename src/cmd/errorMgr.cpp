@@ -45,12 +45,16 @@ void errorMgr::handle(const cmdStat& errCode) {
 }
 
 void errorMgr::cmdError() {
+    cerr << BOLD_RED;
     cerr << "Command Error: " << ErrorCMD << endl;
+    cerr << COLOR_RESET;
 }
 
 void errorMgr::cmdOptIllegal() {
+    cerr << BOLD_RED;
     cerr << "Illegal Option for \'" << ErrorHandler->getKeyWord() << ErrorHandler->getOptional() << "\':";
     for (const auto& opt : ErrorOPT) cerr << " -" << opt; cerr << endl;
+    cerr << COLOR_RESET;
 }
 
 void errorMgr::cmdExecError() {

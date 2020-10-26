@@ -1,5 +1,5 @@
-#ifndef __CMD_HELPER__
-#define __CMD_HELPER__
+#ifndef __DIR_PRINTER_H__
+#define __DIR_PRINTER_H__
 
 #include <dirent.h>
 #include <iomanip>
@@ -30,6 +30,15 @@ enum lsFlag
     UNDEF_FLAG     = INT_MAX
 };
 
+class Printer
+{
+public:
+    Printer() {}
+    ~Printer() {}
+
+private:
+};
+
 lsFlag getFlag    (const char& c);
 bool   checkFlag  (const lsFlag& f, const int& stat);
 bool   listPrint  (const dirCntMap& dirContent, bool all, bool human, bool printDirName, const char* cmd);
@@ -37,4 +46,4 @@ bool   columnPrint(const dirCntMap& dirContent, bool all, bool human, bool print
 
 }
 
-#endif /* __CMD_HELPER__ */
+#endif /* __DIR_PRINTER_H__ */

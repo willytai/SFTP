@@ -1,6 +1,5 @@
-#include "cmdHelper.h"
-// TODO: -h version
-#include "cmdParser.h"
+#include "dirPrinter.h"
+//#include "cmdParser.h"
 
 extern errorMgr errMgr;
 
@@ -82,6 +81,10 @@ bool listPrint(const dirCntMap& dirContent, bool all, bool human, bool printDirN
     return returnStat;
 }
 
+
+/****************
+ * column print *
+ ***************/
 bool listcp(const char* dirName, const LIST::Files& entries, const bool& all, const bool& human, const char* cmd) {
     bool returnStat = true;
 

@@ -1,5 +1,5 @@
 #include "cmdClass.h"
-#include "cmdHelper.h"
+#include "dirPrinter.h"
 #include "util.h"
 #include <unordered_map>
 #include <vector>
