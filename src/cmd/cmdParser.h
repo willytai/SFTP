@@ -90,11 +90,12 @@ public:                                        \
 class errorMgr
 {
 public:
-    errorMgr() {}
+    errorMgr() : _pretty(false) {}
     ~errorMgr() {}
 
     void handle(const cmdStat&);
 
+    void setColorfulPrint () { _pretty = true; }
     void setErrCmd        (const std::string&)       const;
     void setErrOpt        (const std::string&)       const;
     void setErrOpt        (const char&)              const;
@@ -105,6 +106,10 @@ private:
     void cmdError();
     void cmdOptIllegal();
     void cmdExecError();
+
+private:
+    // colorful print or not
+    bool _pretty;
 };
 
 

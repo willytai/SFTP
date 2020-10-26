@@ -6,6 +6,9 @@
 errorMgr errMgr;
 
 int main(int argc, char *argv[]) {
+    // colorful output is disabled for default
+    errMgr.setColorfulPrint();
+
     cmdParser* cmdMgr = new cmdParser("sftp");
     cmdMgr->regCmd();
     if ( argc == 2) {

@@ -9,7 +9,7 @@
 #include "util.h"
 #include "def.h"
 
-namespace LIST      /* helper functions for 'lls' and 'ls' */
+namespace LISTING     /* helper functions for 'lls' and 'ls' */
 {
 
 typedef std::vector<dirent*> Files;
@@ -33,16 +33,34 @@ enum lsFlag
 class Printer
 {
 public:
-    Printer() {}
+    Printer() : _flags(0), _illegal(false), _pDirName(false) {}
     ~Printer() {}
 
-private:
-};
+    bool setFlag(const char& c);
+    bool illegal() const;
+    bool print(const dirCntMap&) const;
+    void setPrintDirName(bool);
 
-lsFlag getFlag    (const char& c);
-bool   checkFlag  (const lsFlag& f, const int& stat);
-bool   listPrint  (const dirCntMap& dirContent, bool all, bool human, bool printDirName, const char* cmd);
-bool   columnPrint(const dirCntMap& dirContent, bool all, bool human, bool printDirName, const char* cmd);
+    const char* getErrEntry() const { return _errEntry; }
+    const char* getErrDir()   const { return _errDir; }
+
+private:
+    lsFlag getFlag (const char& c) const;
+    bool   checkFlag  (const lsFlag& f) const;
+    bool   longPrintMacro  (const dirCntMap& dirContent) const;
+    bool   longPrintDetail (const char*, const Files&) const;
+    bool   columnPrintMacro(const dirCntMap& dirContent) const;
+    bool   columnPrintDetail(const char*, const Files&) const;
+
+private:
+    int     _flags;
+    bool    _illegal;
+    bool    _pDirName;
+
+    // the LATEST entry/dir that wasn't able to be printed (for error handling)
+    mutable const char*   _errEntry;
+    mutable const char*   _errDir;
+};
 
 }
 

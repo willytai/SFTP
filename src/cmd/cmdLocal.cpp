@@ -32,31 +32,28 @@ cmdStat llsCmd::execute(const std::string& option) const {
     // default listing directory
     if ( queryDir.size() == 0 ) queryDir.push_back("./");
 
+    // the printer
+    LISTING::Printer* dirPrinter = new LISTING::Printer();
+
     // check options
-    bool illegalOpt = false;
-    this->resetFlag();
+    // only support singel char flags for now
     for (const auto& c : flags) {
-        LIST::lsFlag f = LIST::getFlag(c);
-        if ( f == LIST::UNDEF_FLAG ) {
-            illegalOpt = true;
+        if ( !dirPrinter->setFlag(c) ) {
             errMgr.setErrOpt(c);
         }
-        else {
-            _flags |= f;
-        }
     }
-    if ( illegalOpt ) {
+    if ( dirPrinter->illegal() ) {
         errMgr.setErrHndlr(this);
         return CMD_OPT_ILLEGAL;
     }
 
     // check directories
     // leave queryDir with the directories that doesn't exist
-    LIST::dirCntMap dirContent;
+    LISTING::dirCntMap dirContent;
     size_t curCheck = 0;
     while ( queryDir.size() && curCheck < queryDir.size() ) {
         auto& dir = queryDir[curCheck];
-        auto check = dirContent.emplace(dir, LIST::Files());
+        auto check = dirContent.emplace(dir, LISTING::Files());
         if ( !check.second ) { // ignore duplicate entries
             std::swap(dir, queryDir.back());
             queryDir.pop_back();
@@ -81,21 +78,16 @@ cmdStat llsCmd::execute(const std::string& option) const {
         }
     }
 
-    // determine the print method
-    cmdStat returnStat = CMD_EXEC_ERROR;
-    bool human = LIST::checkFlag(LIST::HUMAN_READABLE, _flags);
-    bool all   = LIST::checkFlag(LIST::LIST_ALL,       _flags);
-    if ( LIST::checkFlag(LIST::LIST_LONG, _flags) ) {
-        if ( LIST::listPrint(dirContent, all, human, nonExistDir.size()>0 || dirContent.size()>1, "lls") ) {
-            returnStat = CMD_DONE;
-        }
-    }
-    else {
-        if ( LIST::columnPrint(dirContent, all, human, nonExistDir.size()>0 || dirContent.size()>1, "lls") ) {
-            returnStat = CMD_DONE;
-        }
-    }
+    // whether to print the directory's name or not
+    dirPrinter->setPrintDirName( nonExistDir.size()>0 || dirContent.size()>1 );
 
+    cmdStat returnStat = CMD_DONE;
+    if ( !dirPrinter->print( dirContent ) ) {
+        errMgr.setErrCmd("lls");
+        errMgr.setErrEntryAndDir( dirPrinter->getErrEntry(), dirPrinter->getErrDir() );
+        returnStat = CMD_EXEC_ERROR;
+    }
+    delete dirPrinter;
     return returnStat;
 }
 

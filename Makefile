@@ -64,7 +64,7 @@ clean:
 	@for pkg in $(PKGS); \
 	do \
 		$(ECHO) "Cleaning $$pkg ..."; \
-		$(MAKE) -C src/$$pkg -f makefile --no-print-directory clean; \
+		$(MAKE) -C src/$$pkg -f makefile --no-print-directory PKGNAME=$$pkg clean; \
 	done
 	@$(ECHO) "Cleaning main ..."
 	@$(MAKE) -C src/main -f makefile --no-print-directory clean;

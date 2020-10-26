@@ -1,29 +1,69 @@
 #include "dirPrinter.h"
-//#include "cmdParser.h"
 
-extern errorMgr errMgr;
-
-namespace LIST
+namespace LISTING
 {
 
-lsFlag getFlag(const char& c) {
+bool Printer::setFlag(const char& c) {
+    lsFlag f;
+    if ( (f = this->getFlag(c)) == UNDEF_FLAG ) {
+        _illegal = true;
+        return false;
+    }
+    else {
+        _flags |= f;
+        return true;
+    }
+}
+
+bool Printer::checkFlag(const lsFlag& f) const {
+    return (_flags & f) == f;
+}
+
+bool Printer::illegal() const {
+    return _illegal;
+}
+
+void Printer::setPrintDirName(bool b) {
+    _pDirName = b;
+}
+
+bool Printer::print(const dirCntMap& dirContent) const {
+    if ( this->checkFlag(LIST_LONG) ) return this->longPrintMacro( dirContent );
+    else                              return this->columnPrintMacro( dirContent );
+}
+
+lsFlag Printer::getFlag(const char& c) const {
     int code = 1 << (int(c) - int('a'));
     lsFlag f = lsFlag(code);
     if ( f == HUMAN_READABLE ||
          f == LIST_ALL       ||
+         f == LIST_XATTR     ||
          f == LIST_LONG) {
         return f;
     }
     else return UNDEF_FLAG;
 }
 
-bool checkFlag(const lsFlag& f, const int& stat) {
-    return (stat & f) == f;
+bool Printer::longPrintMacro(const dirCntMap& dirContent) const {
+    size_t count = 0;
+    bool returnStat = true;
+    bool all = this->checkFlag(LIST_ALL);
+    bool hum = this->checkFlag(HUMAN_READABLE);
+    for (const auto& pair : dirContent) {
+        const auto& dirName = pair.first;
+        const auto& entries = pair.second;
+        if ( _pDirName ) cout << dirName << ":" << endl;
+        returnStat = returnStat && this->longPrintDetail(dirName.c_str(), entries);
+        if ( ++count != dirContent.size() ) cout << endl << endl;
+    }
+    return returnStat;
 }
 
 // TODO: -h version
-bool listpp(const char* dirName, const LIST::Files& entries, const bool& all, const bool& human, const char* cmd) {
+bool Printer::longPrintDetail(const char* dirName, const Files& entries) const {
     bool returnStat = true;
+    bool PRINT_ALL  = this->checkFlag(LIST_ALL);
+    bool PRINT_HUM  = this->checkFlag(HUMAN_READABLE);
 
     // word length for each property
     int w_nlink = 0, w_usrname = 0, w_grname = 0, w_size = 0;
@@ -36,9 +76,9 @@ bool listpp(const char* dirName, const LIST::Files& entries, const bool& all, co
         const auto& info = entries[i];
         auto& infoStat   = entryStats[i];
         if ( !UTIL::getEntryStat(dirName, info->d_name, &infoStat) ) {
-            errMgr.setErrCmd(cmd);
-            errMgr.setErrEntryAndDir(info->d_name, dirName);
-            valid[i] = false;
+            _errEntry  = info->d_name;
+            _errDir    = dirName;
+            valid[i]   = false;
             returnStat = false;
             continue;
         }
@@ -54,7 +94,7 @@ bool listpp(const char* dirName, const LIST::Files& entries, const bool& all, co
         const auto& infoStat = entryStats[i];
         const auto& isValid  = valid[i];
         if ( !isValid ) continue;
-        if ( !all && infoStat.en_name[0] == '.' ) continue;
+        if ( !PRINT_ALL && infoStat.en_name[0] == '.' ) continue;
         cout << infoStat.en_type
              << infoStat.en_perm
              << infoStat.en_xattr       << ' '
@@ -68,25 +108,26 @@ bool listpp(const char* dirName, const LIST::Files& entries, const bool& all, co
     return returnStat;
 }
 
-bool listPrint(const dirCntMap& dirContent, bool all, bool human, bool printDirName, const char* cmd) {
+
+/****************
+ * column print *
+ ***************/
+bool Printer::columnPrintMacro(const dirCntMap& dirContent) const {
     size_t count = 0;
     bool returnStat = true;
     for (const auto& pair : dirContent) {
         const auto& dirName = pair.first;
         const auto& entries = pair.second;
-        if ( printDirName ) cout << dirName << ":" << endl;
-        returnStat = returnStat && listpp(dirName.c_str(), entries, all, human, cmd);
+        if ( _pDirName ) cout << dirName << ":" << endl;
+        returnStat = returnStat && this->columnPrintDetail(dirName.c_str(), entries);
         if ( ++count != dirContent.size() ) cout << endl << endl;
     }
     return returnStat;
 }
 
-
-/****************
- * column print *
- ***************/
-bool listcp(const char* dirName, const LIST::Files& entries, const bool& all, const bool& human, const char* cmd) {
+bool Printer::columnPrintDetail(const char* dirName, const Files& entries) const {
     bool returnStat = true;
+    bool PRINT_ALL  = this->checkFlag(LIST_ALL);
 
     // word length for each property
     int w_usrname = 0;
@@ -107,26 +148,13 @@ bool listcp(const char* dirName, const LIST::Files& entries, const bool& all, co
     int count = 0;
     for (size_t i = 0; i < entries.size(); ++i) {
         const auto& info = entries[i];
-        if ( !all && info->d_name[0] == '.') continue;
+        if ( !PRINT_ALL && info->d_name[0] == '.') continue;
         cout << left << setw(w_usrname) << info->d_name;
         if ( ++count == nfiles ) cout << endl;
         else cout << ' ';
     }
     if ( count != nfiles ) cout << endl;
 
-    return returnStat;
-}
-
-bool columnPrint(const dirCntMap& dirContent, bool all, bool human, bool printDirName, const char* cmd) {
-    size_t count = 0;
-    bool returnStat = true;
-    for (const auto& pair : dirContent) {
-        const auto& dirName = pair.first;
-        const auto& entries = pair.second;
-        if ( printDirName ) cout << dirName << ":" << endl;
-        returnStat = returnStat && listcp(dirName.c_str(), entries, all, human, cmd);
-        if ( ++count != dirContent.size() ) cout << endl << endl;
-    }
     return returnStat;
 }
 
