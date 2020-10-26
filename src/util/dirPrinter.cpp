@@ -3,64 +3,29 @@
 namespace LISTING
 {
 
-bool Printer::setFlag(const char& c) {
-    lsFlag f;
-    if ( (f = this->getFlag(c)) == UNDEF_FLAG ) {
-        _illegal = true;
-        return false;
-    }
-    else {
-        _flags |= f;
-        return true;
-    }
-}
-
-bool Printer::checkFlag(const lsFlag& f) const {
-    return (_flags & f) == f;
-}
-
-bool Printer::illegal() const {
-    return _illegal;
-}
-
-void Printer::setPrintDirName(bool b) {
-    _pDirName = b;
-}
-
 bool Printer::print(const dirCntMap& dirContent) const {
-    if ( this->checkFlag(LIST_LONG) ) return this->longPrintMacro( dirContent );
-    else                              return this->columnPrintMacro( dirContent );
-}
-
-lsFlag Printer::getFlag(const char& c) const {
-    int code = 1 << (int(c) - int('a'));
-    lsFlag f = lsFlag(code);
-    if ( f == HUMAN_READABLE ||
-         f == LIST_ALL       ||
-         f == LIST_XATTR     ||
-         f == LIST_LONG) {
-        return f;
-    }
-    else return UNDEF_FLAG;
-}
-
-bool Printer::longPrintMacro(const dirCntMap& dirContent) const {
-    size_t count = 0;
-    bool returnStat = true;
-    bool all = this->checkFlag(LIST_ALL);
-    bool hum = this->checkFlag(HUMAN_READABLE);
+    size_t count      = 0;
+    bool   returnStat = true;
     for (const auto& pair : dirContent) {
         const auto& dirName = pair.first;
         const auto& entries = pair.second;
         if ( _pDirName ) cout << dirName << ":" << endl;
-        returnStat = returnStat && this->longPrintDetail(dirName.c_str(), entries);
+
+        // decide print method
+        if ( this->checkFlag(LIST_LONG) ) {
+            returnStat = returnStat && this->longPrint(dirName.c_str(), entries);
+        }
+        else {
+            returnStat = returnStat && this->columnPrint(entries);
+        }
+
         if ( ++count != dirContent.size() ) cout << endl << endl;
     }
     return returnStat;
 }
 
 // TODO: -h version
-bool Printer::longPrintDetail(const char* dirName, const Files& entries) const {
+bool Printer::longPrint(const char* dirName, const Files& entries) const {
     bool returnStat = true;
     bool PRINT_ALL  = this->checkFlag(LIST_ALL);
     bool PRINT_HUM  = this->checkFlag(HUMAN_READABLE);
@@ -112,20 +77,7 @@ bool Printer::longPrintDetail(const char* dirName, const Files& entries) const {
 /****************
  * column print *
  ***************/
-bool Printer::columnPrintMacro(const dirCntMap& dirContent) const {
-    size_t count = 0;
-    bool returnStat = true;
-    for (const auto& pair : dirContent) {
-        const auto& dirName = pair.first;
-        const auto& entries = pair.second;
-        if ( _pDirName ) cout << dirName << ":" << endl;
-        returnStat = returnStat && this->columnPrintDetail(dirName.c_str(), entries);
-        if ( ++count != dirContent.size() ) cout << endl << endl;
-    }
-    return returnStat;
-}
-
-bool Printer::columnPrintDetail(const char* dirName, const Files& entries) const {
+bool Printer::columnPrint(const Files& entries) const {
     bool returnStat = true;
     bool PRINT_ALL  = this->checkFlag(LIST_ALL);
 
@@ -156,6 +108,46 @@ bool Printer::columnPrintDetail(const char* dirName, const Files& entries) const
     if ( count != nfiles ) cout << endl;
 
     return returnStat;
+}
+
+
+/********************
+ * helper functions *
+ *******************/
+bool Printer::setFlag(const char& c) {
+    lsFlag f;
+    if ( (f = this->getFlag(c)) == UNDEF_FLAG ) {
+        _illegal = true;
+        return false;
+    }
+    else {
+        _flags |= f;
+        return true;
+    }
+}
+
+bool Printer::checkFlag(const lsFlag& f) const {
+    return (_flags & f) == f;
+}
+
+bool Printer::illegal() const {
+    return _illegal;
+}
+
+void Printer::setPrintDirName(bool b) {
+    _pDirName = b;
+}
+
+lsFlag Printer::getFlag(const char& c) const {
+    int code = 1 << (int(c) - int('a'));
+    lsFlag f = lsFlag(code);
+    if ( f == HUMAN_READABLE ||
+         f == LIST_ALL       ||
+         f == LIST_XATTR     ||
+         f == LIST_LONG) {
+        return f;
+    }
+    else return UNDEF_FLAG;
 }
 
 }

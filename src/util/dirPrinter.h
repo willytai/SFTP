@@ -36,21 +36,19 @@ public:
     Printer() : _flags(0), _illegal(false), _pDirName(false) {}
     ~Printer() {}
 
-    bool setFlag(const char& c);
-    bool illegal() const;
-    bool print(const dirCntMap&) const;
-    void setPrintDirName(bool);
+    bool setFlag         (const char&);
+    bool print           (const dirCntMap&) const;
+    bool illegal         ()                 const;
+    void setPrintDirName (bool);
 
     const char* getErrEntry() const { return _errEntry; }
     const char* getErrDir()   const { return _errDir; }
 
 private:
-    lsFlag getFlag (const char& c) const;
-    bool   checkFlag  (const lsFlag& f) const;
-    bool   longPrintMacro  (const dirCntMap& dirContent) const;
-    bool   longPrintDetail (const char*, const Files&) const;
-    bool   columnPrintMacro(const dirCntMap& dirContent) const;
-    bool   columnPrintDetail(const char*, const Files&) const;
+    bool   longPrint   (const char*, const Files&) const;
+    bool   columnPrint (const Files&)              const;
+    bool   checkFlag   (const lsFlag&)             const;
+    lsFlag getFlag     (const char&)               const;
 
 private:
     int     _flags;

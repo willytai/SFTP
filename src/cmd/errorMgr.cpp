@@ -53,8 +53,9 @@ void errorMgr::cmdError() {
 void errorMgr::cmdOptIllegal() {
     if ( _pretty ) cerr << BOLD_RED;
     cerr << "Illegal Option for \'" << ErrorHandler->getKeyWord() << ErrorHandler->getOptional() << "\':";
-    for (const auto& opt : ErrorOPT) cerr << " -" << opt; cerr << endl;
+    for (const auto& opt : ErrorOPT) cerr << " -" << opt;
     if ( _pretty ) cerr << COLOR_RESET;
+    cerr << endl;
 }
 
 void errorMgr::cmdExecError() {
