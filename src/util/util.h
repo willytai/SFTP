@@ -10,9 +10,11 @@ namespace UTIL
 // common helper functions
 void   parseTokens(const std::string&, std::vector<std::string>&, char delimiter = ' ');
 size_t strNcmp(const std::string&, const std::string&, size_t);
-int wLength(size_t);
-int wLength(int);
-int wLength(const char*);
+
+// length of string or integers
+int    wLength(size_t);
+int    wLength(int);
+int    wLength(const char*);
 
 // convert size to human readabel format
 void toHuman(double*, char*);

@@ -86,7 +86,7 @@ void getTypeChar(const mode_t& mode, char& tchar) {
         case S_IFLNK:  tchar = 'l'; break;       // symbolic link
         case S_IFIFO:  tchar = 'p'; break;       // named pipe or FIFO
         case S_IFSOCK: tchar = 's'; break;       // local-domain socket
-        default:       tchar = ' '; break;       // unknown type (only some filesystems have full fupport to return file types)
+        default:       tchar = ' '; break;       // unknown type (only some filesystems have full support to return file types)
     }
 }
 

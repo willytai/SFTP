@@ -28,7 +28,6 @@ bool Printer::print(const dirCntMap& dirContent) const {
 /**************
  * long print *
  *************/
-// TODO: -h version
 bool Printer::longPrint(const char* dirName, const Files& entries) const {
     bool returnStat = true;
     bool PRINT_ALL  = this->checkFlag(LIST_ALL);
@@ -52,11 +51,22 @@ bool Printer::longPrint(const char* dirName, const Files& entries) const {
             continue;
         }
         else {
-            if ( PRINT_HUM ) UTIL::toHuman(&(infoStat.en_size_h), &(infoStat.en_unit_h));
             w_nlink   = std::max(w_nlink,   UTIL::wLength(infoStat.en_nlink));
             w_usrname = std::max(w_usrname, UTIL::wLength(infoStat.en_usrname));
             w_grname  = std::max(w_grname,  UTIL::wLength(infoStat.en_grname));
-            w_size    = std::max(w_size,    UTIL::wLength(infoStat.en_size));
+
+            /*******************************************
+             * human readable format always has length *
+             * of 3 puls 1 more for wider columns      *
+             ******************************************/
+            if ( PRINT_HUM ) {
+                infoStat.en_size_h = (double)infoStat.en_size;
+                UTIL::toHuman(&(infoStat.en_size_h), &(infoStat.en_unit_h));
+                w_size = 4;
+            }
+            else {
+                w_size = std::max(w_size,    UTIL::wLength(infoStat.en_size));
+            }
         }
     }
 
@@ -70,9 +80,14 @@ bool Printer::longPrint(const char* dirName, const Files& entries) const {
              << infoStat.en_xattr        << ' '
              << right << setw(w_nlink)   << infoStat.en_nlink   << ' '
              << right << setw(w_usrname) << infoStat.en_usrname << ' '
-             << right << setw(w_grname)  << infoStat.en_grname  << ' '
-             << right << setw(w_size)    << infoStat.en_size    << ' '
-             << infoStat.en_mtime        << ' '
+             << right << setw(w_grname)  << infoStat.en_grname  << ' ';
+        if ( PRINT_HUM ) {
+            cout << right << setw(w_size) << infoStat.en_size_h << infoStat.en_unit_h << ' ';
+        }
+        else {
+            cout << right << setw(w_size) << infoStat.en_size << ' ';
+        }
+        cout << infoStat.en_mtime        << ' '
              << infoStat.en_name         << endl;
     }
     return returnStat;

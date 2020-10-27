@@ -2,6 +2,7 @@
 #include <sys/ioctl.h>
 #include <unistd.h>
 #include <string.h>
+#include <cmath>
 #include <cstdio>
 
 namespace UTIL
@@ -61,8 +62,33 @@ size_t strNcmp(const std::string& s1, const std::string& s2, size_t n) {
     return ret;
 }
 
+static const char unitDict[] = {'B', 'K', 'M', 'G', 'T', 'P'};
 void toHuman(double* val, char* unit) {
+    int intval = (int)((*val));
+    int lengthval = wLength(intval);
+    short unitIdx = 0;
+    if ( lengthval <= 3 ) {
+        (*unit) = 'B';
+    }
+    else {
+        while ( lengthval > 3 ) {
+            (*val) /= 1000;
+            lengthval -= 3;
+            ++unitIdx;
+        }
+        (*unit) = unitDict[unitIdx];
 
+        // round to the first decimal place
+        if ( lengthval == 1 ) {
+            (*val) *= 10;
+            (*val)  = std::round((*val));
+            (*val) /= 10;
+        }
+        // otherwise, round to interger
+        else {
+            (*val) = std::round((*val));
+        }
+    }
 }
 
 int getTermWidth() {
