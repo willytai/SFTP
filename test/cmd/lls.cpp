@@ -81,6 +81,7 @@ TEST_CASE( "Listing Output", "[lls]" )
     TEST_SECTION(lls5);
     TEST_SECTION(lls6);
     TEST_SECTION(lls7);
+    TEST_SECTION(lls8);
 
     delete cmdMgr;
     #undef TEST_SECTION

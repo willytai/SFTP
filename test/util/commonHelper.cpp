@@ -118,3 +118,155 @@ TEST_CASE("wLength", "[UTIL]")
         REQUIRE( UTIL::wLength(0xffffffffffffffff) == 20 );
     }
 }
+TEST_CASE("toHuman", "[UTIL]")
+{
+    #define prepData(v, u)         \
+        val  = v;                  \
+        unit = u;                  \
+        UTIL::toHuman(&val, &unit);
+    SECTION("Bytes")
+    {
+        double val;
+        char   unit;
+
+        prepData(1, 'B');
+        REQUIRE( val  == 1 );
+        REQUIRE( unit == 'B' ); 
+
+        prepData(10, 'B');
+        REQUIRE( val  == 10 );
+        REQUIRE( unit == 'B' ); 
+
+        prepData(999, 'B');
+        REQUIRE( val  == 999 );
+        REQUIRE( unit == 'B' ); 
+    }
+    SECTION("KBytes")
+    {
+        double val;
+        char   unit;
+
+        prepData(1000, 'B');
+        REQUIRE( val  == 1 );
+        REQUIRE( unit == 'K' ); 
+
+        prepData(1001, 'B');
+        REQUIRE( val  == 1 );
+        REQUIRE( unit == 'K' ); 
+
+        prepData(1050, 'B');
+        REQUIRE( val  == 1.1 );
+        REQUIRE( unit == 'K' ); 
+
+        prepData(1130, 'B');
+        REQUIRE( val  == 1.1 );
+        REQUIRE( unit == 'K' ); 
+
+        prepData(1150, 'B');
+        REQUIRE( val  == 1.2 );
+        REQUIRE( unit == 'K' ); 
+
+        prepData(9999, 'B');
+        REQUIRE( val  == 10 );
+        REQUIRE( unit == 'K' ); 
+
+        prepData(10000, 'B');
+        REQUIRE( val  == 10 );
+        REQUIRE( unit == 'K' ); 
+
+        prepData(10500, 'B');
+        REQUIRE( val  == 11 );
+        REQUIRE( unit == 'K' ); 
+
+        prepData(10400, 'B');
+        REQUIRE( val  == 10 );
+        REQUIRE( unit == 'K' ); 
+
+        prepData(999000, 'B');
+        REQUIRE( val  == 999 );
+        REQUIRE( unit == 'K' ); 
+
+        prepData(999400, 'B');
+        REQUIRE( val  == 999 );
+        REQUIRE( unit == 'K' ); 
+
+        prepData(999500, 'B');
+        REQUIRE( val  == 1 );
+        REQUIRE( unit == 'M' ); 
+    }
+    SECTION("GBytes")
+    {
+        double val;
+        char   unit;
+
+        prepData(1000000000, 'B');
+        REQUIRE( val  == 1 );
+        REQUIRE( unit == 'G' ); 
+
+        prepData(1001000000, 'B');
+        REQUIRE( val  == 1 );
+        REQUIRE( unit == 'G' ); 
+
+        prepData(1050000000, 'B');
+        REQUIRE( val  == 1.1 );
+        REQUIRE( unit == 'G' ); 
+
+        prepData(1130000000, 'B');
+        REQUIRE( val  == 1.1 );
+        REQUIRE( unit == 'G' ); 
+
+        prepData(1150000000, 'B');
+        REQUIRE( val  == 1.2 );
+        REQUIRE( unit == 'G' ); 
+
+        prepData(9999000000, 'B');
+        CHECK( val  == 10 );
+        CHECK( unit == 'G' ); 
+
+        prepData(99999000000, 'B');
+        CHECK( val  == 100 );
+        CHECK( unit == 'G' ); 
+
+        prepData(10000000000, 'B');
+        CHECK( val  == 10 );
+        CHECK( unit == 'G' ); 
+
+        prepData(10500000000, 'B');
+        CHECK( val  == 11 );
+        CHECK( unit == 'G' ); 
+
+        prepData(10400000000, 'B');
+        CHECK( val  == 10 );
+        CHECK( unit == 'G' ); 
+
+        prepData(999000000000, 'B');
+        CHECK( val  == 999 );
+        CHECK( unit == 'G' ); 
+
+        prepData(999400000000, 'B');
+        CHECK( val  == 999 );
+        CHECK( unit == 'G' ); 
+
+        prepData(999500000000, 'B');
+        CHECK( val  == 1 );
+        CHECK( unit == 'T' ); 
+    }
+    SECTION("PBytes")
+    {
+        double val;
+        char   unit;
+
+        prepData(1000000000000000, 'B');
+        REQUIRE( val  == 1 );
+        REQUIRE( unit == 'P' ); 
+
+        prepData(10000000000000000, 'B');
+        REQUIRE( val  == 10 );
+        REQUIRE( unit == 'P' ); 
+
+        prepData(999000000000000000, 'B');
+        REQUIRE( val  == 999 );
+        REQUIRE( unit == 'P' ); 
+    }
+    #undef prepData
+}

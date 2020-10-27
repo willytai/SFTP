@@ -64,7 +64,7 @@ size_t strNcmp(const std::string& s1, const std::string& s2, size_t n) {
 
 static const char unitDict[] = {'B', 'K', 'M', 'G', 'T', 'P'};
 void toHuman(double* val, char* unit) {
-    int intval = (int)((*val));
+    size_t intval = size_t((*val));
     int lengthval = wLength(intval);
     short unitIdx = 0;
     if ( lengthval <= 3 ) {
@@ -76,6 +76,9 @@ void toHuman(double* val, char* unit) {
             lengthval -= 3;
             ++unitIdx;
         }
+
+        // max supported unit is Petabyte
+        unitIdx = unitIdx > 5 ? 5 : unitIdx;
         (*unit) = unitDict[unitIdx];
 
         // round to the first decimal place
@@ -87,6 +90,12 @@ void toHuman(double* val, char* unit) {
         // otherwise, round to interger
         else {
             (*val) = std::round((*val));
+        }
+
+        // check if the rounded value has more than three digits
+        if ( unitIdx < 5 && wLength(size_t(*val)) == 4 ) {
+            (*val) /= 1000;
+            (*unit) = unitDict[++unitIdx];
         }
     }
 }
