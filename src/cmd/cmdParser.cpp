@@ -47,7 +47,7 @@ cmdStat cmdParser::readChar(std::istream& stream) {
             case ARROW_DOWN_KEY:  this->retrieveHistory(short(_hisID+1)); break;
             case ARROW_LEFT_KEY:  this->moveBufPtr(_bufPtr-1); break;
             case ARROW_RIGHT_KEY: this->moveBufPtr(_bufPtr+1); break;
-            case PG_UP_KEY:       this->retrieveHistory(short(_hisID+PG_OFFSET)); break;
+            case PG_UP_KEY:       this->retrieveHistory(short(_hisID-PG_OFFSET)); break;
             case PG_DOWN_KEY:     this->retrieveHistory(short(_hisID+PG_OFFSET)); break;
             case UNDEF_KEY:       bell(); break;
             default:              this->insertChar(char(pch)); this->makeCopy(); break;
@@ -283,11 +283,16 @@ void cmdParser::autoComplete() {
 }
 
 // TODO: doesn't work like standard terminal during string matching
+// TODO: history size is not restricted
 void cmdParser::retrieveHistory(short tID) {
 
     // dummy check
-    if ( tID == -1 ) return;
-    if ( tID == (short)_history.size()+1 ) return;
+    if ( tID <= -1 ) {
+        tID = 0;
+    }
+    if ( tID >= (short)_history.size()+1 ) {
+        tID = (short)_history.size();
+    }
 
     const std::string* targetString = tID == (short)_history.size() ? &_bufTmp : &_history[tID];
 
