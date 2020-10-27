@@ -139,6 +139,7 @@ cmdStat cmdParser::interpretateAndExecute() const {
  *    cmd="g", it returns which ever is 
  *    first traversed
  *****************************************/
+// TODO: the EXACT handler should be returned instead of the first one that partialy matches
 cmdExec* cmdParser::getCmdHandler(const std::string& cmd) const {
     for (const auto& pair : _cmdMap) {
         const auto& cmdHandler = pair.second;

@@ -2,6 +2,7 @@
 #include "dirPrinter.h"
 #include "util.h"
 #include "dirIO.h"
+#include <unistd.h>
 #include <unordered_map>
 #include <vector>
 
@@ -20,10 +21,10 @@ cmdStat llsCmd::execute(const std::string& option) const {
      **************************************************/
 
     // parse tokens
-    std::vector<std::string> tokens;
+    vecstr tokens;
     UTIL::parseTokens(option, tokens);
 
-    std::vector<std::string> queryDir;
+    vecstr queryDir;
     std::string flags;
     for (const auto& tok : tokens) {
         if ( tok[0] != '-' ) queryDir.push_back(tok);
@@ -78,10 +79,11 @@ cmdStat llsCmd::execute(const std::string& option) const {
     // whether to print the directory's name or not
     dirPrinter->setPrintDirName( nonExistDir.size()>0 || dirContent.size()>1 );
 
+    // not sure whether this would happen or not
     cmdStat returnStat = CMD_DONE;
     if ( !dirPrinter->print( dirContent ) ) {
         errMgr.setErrCmd("lls");
-        errMgr.setErrEntryAndDir( dirPrinter->getErrEntry(), dirPrinter->getErrDir() );
+        errMgr.setErrArg( dirPrinter->getErrDir() );
         returnStat = CMD_EXEC_ERROR;
     }
     delete dirPrinter;
@@ -89,7 +91,6 @@ cmdStat llsCmd::execute(const std::string& option) const {
 }
 
 void llsCmd::usage() const {
-    // TODO: re-organize files and write test
     return;
 }
 
@@ -100,8 +101,18 @@ void llsCmd::help() const {
 /**********/
 /* lcdCmd */
 /**********/
+// TODO: support "cd old new"
 cmdStat lcdCmd::execute(const std::string& option) const {
-    return CMD_DONE;
+    vecstr tokens;
+    UTIL::parseTokens(option, tokens);
+    if ( tokens.size() > 1 ) return CMD_ARG_TOO_MANY;
+    const std::string& target = tokens.size() == 0 ? _home : tokens[0];
+    if ( chdir(target.c_str()) != 0 ) {
+        errMgr.setErrCmd("lcd");
+        errMgr.setErrArg( target );
+        return CMD_EXEC_ERROR;
+    }
+    else return CMD_DONE;
 }
 
 void lcdCmd::usage() const {

@@ -14,22 +14,24 @@
 enum cmdStat
 {
     // command execution status
-    CMD_DONE        = 0,
-    CMD_ERROR       = 1,
-    CMD_EXIT        = 2,
-    CMD_EXECUTE     = 3,
+    CMD_DONE         = 0,
+    CMD_ERROR        = 1,
+    CMD_EXIT         = 2,
+    CMD_EXECUTE      = 3,
 
     // command option errors
-    CMD_OPT_MISSING = 4,
-    CMD_OPT_EXTRA   = 5,
-    CMD_OPT_ILLEGAL = 6,
+    CMD_OPT_MISSING  = 4,
+    CMD_OPT_EXTRA    = 5,
+    CMD_OPT_ILLEGAL  = 6,
 
     // command execution error
-    CMD_EXEC_ERROR  = 9,
+    CMD_EXEC_ERROR   = 9,
+
+    CMD_ARG_TOO_MANY = 10,
 
     // command registration
-    CMD_REG_FAIL    = 7,
-    CMD_REG_DONE    = 8,
+    CMD_REG_FAIL     = 7,
+    CMD_REG_DONE     = 8,
 
     CMD_DUMMY
 };
@@ -99,11 +101,11 @@ public:
     void handleNonExistDir(const std::string&, const std::vector<std::string>&, bool) const;
 
     void setColorfulPrint () { _pretty = true; }
-    void setErrCmd        (const std::string&)       const;
-    void setErrOpt        (const std::string&)       const;
-    void setErrOpt        (const char&)              const;
-    void setErrHndlr      (const cmdExec*)           const;
-    void setErrEntryAndDir(const char*, const char*) const;
+    void setErrCmd        (const std::string&)  const;
+    void setErrOpt        (const std::string&)  const;
+    void setErrArg        (const std::string&)  const;
+    void setErrOpt        (const char&)         const;
+    void setErrHndlr      (const cmdExec*)      const;
 
 private:
     void cmdError();

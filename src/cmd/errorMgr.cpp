@@ -1,12 +1,12 @@
 #include "cmdParser.h"
 #include <set>
+#include <string>
 
 static std::set<std::string> ErrorOPT;
 
 static std::string ErrorCMD;
+static std::string ErrorArg;
 static const cmdExec* ErrorHandler;
-static const char* ErrorEntry;
-static const char* ErrorDir;
 
 void errorMgr::handle(const cmdStat& errCode) {
     switch (errCode) {
@@ -46,9 +46,8 @@ void errorMgr::setErrHndlr(const cmdExec* h) const {
     ErrorHandler = h;
 }
 
-void errorMgr::setErrEntryAndDir(const char* e, const char* d) const {
-    ErrorEntry = e;
-    ErrorDir   = d;
+void errorMgr::setErrArg(const std::string& a) const {
+    ErrorArg = a;
 }
 
 void errorMgr::cmdError() {
@@ -66,7 +65,8 @@ void errorMgr::cmdOptIllegal() {
 }
 
 void errorMgr::cmdExecError() {
-    std::string msg = std::string(ErrorCMD)+": "+std::string(ErrorEntry)+" in "+std::string(ErrorDir);
-    if ( msg.back() != '/' ) msg.push_back('/');
+    std::string msg = ErrorCMD+": "+ErrorArg;
+    if ( _pretty ) cerr << BOLD_RED;
     perror(msg.c_str());
+    if ( _pretty ) cerr << COLOR_RESET;
 }

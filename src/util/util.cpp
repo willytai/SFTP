@@ -1,5 +1,7 @@
 #include "util.h"
 #include <sys/ioctl.h>
+#include <sys/types.h>
+#include <pwd.h>
 #include <unistd.h>
 #include <string.h>
 #include <cmath>
@@ -104,6 +106,10 @@ int getTermWidth() {
     struct winsize ws;
     ioctl(STDIN_FILENO, TIOCGWINSZ, &ws);
     return ws.ws_col;
+}
+
+void getHomeDir(const char** h) {
+    *h = getpwuid(getuid())->pw_dir;
 }
 
 }

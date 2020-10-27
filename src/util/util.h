@@ -21,6 +21,9 @@ void toHuman(double*, char*);
 
 // size of the terminal
 int getTermWidth();
+
+// home directory
+void getHomeDir(const char**);
 }
 
 #endif /* __UTIL_H__ */
