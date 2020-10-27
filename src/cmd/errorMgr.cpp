@@ -8,6 +8,23 @@ static const cmdExec* ErrorHandler;
 static const char* ErrorEntry;
 static const char* ErrorDir;
 
+void errorMgr::handle(const cmdStat& errCode) {
+    switch (errCode) {
+        case CMD_ERROR:       this->cmdError();      break;
+        case CMD_OPT_ILLEGAL: this->cmdOptIllegal(); break;
+        case CMD_EXEC_ERROR:  this->cmdExecError();  break;
+        default: return;
+    }
+    ErrorOPT.clear();
+}
+
+void errorMgr::handleNonExistDir(const std::string& cmd, const std::vector<std::string>& nonExistDir, bool lbreak) const {
+    for (const auto& dir : nonExistDir) {
+        cerr << cmd << ": " << dir << ": No such file or directory" << endl;
+        if ( lbreak ) cerr << endl << endl;
+    }
+}
+
 void errorMgr::setErrCmd(const std::string& s) const {
     ErrorCMD = s;
 }
@@ -32,16 +49,6 @@ void errorMgr::setErrHndlr(const cmdExec* h) const {
 void errorMgr::setErrEntryAndDir(const char* e, const char* d) const {
     ErrorEntry = e;
     ErrorDir   = d;
-}
-
-void errorMgr::handle(const cmdStat& errCode) {
-    switch (errCode) {
-        case CMD_ERROR:       this->cmdError();      break;
-        case CMD_OPT_ILLEGAL: this->cmdOptIllegal(); break;
-        case CMD_EXEC_ERROR:  this->cmdExecError();  break;
-        default: return;
-    }
-    ErrorOPT.clear();
 }
 
 void errorMgr::cmdError() {

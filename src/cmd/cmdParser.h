@@ -95,6 +95,9 @@ public:
 
     void handle(const cmdStat&);
 
+    // for 'ls' and 'lls'
+    void handleNonExistDir(const std::string&, const std::vector<std::string>&, bool) const;
+
     void setColorfulPrint () { _pretty = true; }
     void setErrCmd        (const std::string&)       const;
     void setErrOpt        (const std::string&)       const;

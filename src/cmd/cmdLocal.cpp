@@ -69,16 +69,11 @@ cmdStat llsCmd::execute(const std::string& option) const {
         }
     }
 
-    // queryDir now contains non-existing dirs
-    // error msg
+    // -- queryDir now contains non-existing dirs
+    // -- becuase the error is already handled here, the command execution
+    //    returns CMD_DONE unless something wrong happens afterward
     auto& nonExistDir = queryDir;
-    if ( nonExistDir.size() ) {
-        for (const auto& dir : nonExistDir) {
-            // TODO let errMgr handle instead of explicitly implementing
-            cerr << this->getCmdStr() << ": " << dir << ": No such file or directory" << endl;
-            if ( dirContent.size() ) cerr << endl << endl;
-        }
-    }
+    errMgr.handleNonExistDir( this->getCmdStr(), nonExistDir, dirContent.size()>0 );
 
     // whether to print the directory's name or not
     dirPrinter->setPrintDirName( nonExistDir.size()>0 || dirContent.size()>1 );

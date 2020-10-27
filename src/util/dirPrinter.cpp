@@ -3,6 +3,8 @@
 namespace LISTING
 {
 
+// TODO: print colorful format for different entry types
+// TODO: -@ not yet implemented
 bool Printer::print(const dirCntMap& dirContent) const {
     size_t count      = 0;
     bool   returnStat = true;
@@ -28,6 +30,7 @@ bool Printer::print(const dirCntMap& dirContent) const {
 /**************
  * long print *
  *************/
+// TODO: print symbolic links in correct format
 bool Printer::longPrint(const char* dirName, const Files& entries) const {
     bool returnStat = true;
     bool PRINT_ALL  = this->checkFlag(LIST_ALL);
