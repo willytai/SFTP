@@ -1,6 +1,7 @@
 #include "cmdClass.h"
 #include "dirPrinter.h"
 #include "util.h"
+#include "dirIO.h"
 #include <unordered_map>
 #include <vector>
 
@@ -36,7 +37,7 @@ cmdStat llsCmd::execute(const std::string& option) const {
     LISTING::Printer* dirPrinter = new LISTING::Printer();
 
     // check options
-    // only support singel char flags for now
+    // only support single char flags for now
     for (const auto& c : flags) {
         if ( !dirPrinter->setFlag(c) ) {
             errMgr.setErrOpt(c);
@@ -73,6 +74,7 @@ cmdStat llsCmd::execute(const std::string& option) const {
     auto& nonExistDir = queryDir;
     if ( nonExistDir.size() ) {
         for (const auto& dir : nonExistDir) {
+            // TODO let errMgr handle instead of explicitly implementing
             cerr << this->getCmdStr() << ": " << dir << ": No such file or directory" << endl;
             if ( dirContent.size() ) cerr << endl << endl;
         }

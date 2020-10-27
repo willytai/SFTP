@@ -24,6 +24,10 @@ bool Printer::print(const dirCntMap& dirContent) const {
     return returnStat;
 }
 
+
+/**************
+ * long print *
+ *************/
 // TODO: -h version
 bool Printer::longPrint(const char* dirName, const Files& entries) const {
     bool returnStat = true;
@@ -48,6 +52,7 @@ bool Printer::longPrint(const char* dirName, const Files& entries) const {
             continue;
         }
         else {
+            if ( PRINT_HUM ) UTIL::toHuman(&(infoStat.en_size_h), &(infoStat.en_unit_h));
             w_nlink   = std::max(w_nlink,   UTIL::wLength(infoStat.en_nlink));
             w_usrname = std::max(w_usrname, UTIL::wLength(infoStat.en_usrname));
             w_grname  = std::max(w_grname,  UTIL::wLength(infoStat.en_grname));
@@ -62,13 +67,13 @@ bool Printer::longPrint(const char* dirName, const Files& entries) const {
         if ( !PRINT_ALL && infoStat.en_name[0] == '.' ) continue;
         cout << infoStat.en_type
              << infoStat.en_perm
-             << infoStat.en_xattr       << ' '
-             << right << setw(w_nlink)  << infoStat.en_nlink   << ' '
-             << right<< setw(w_usrname) << infoStat.en_usrname << ' '
-             << right<< setw(w_grname)  << infoStat.en_grname  << ' '
-             << right<< setw(w_size)    << infoStat.en_size    << ' '
-             << infoStat.en_mtime       << ' '
-             << infoStat.en_name        << endl;
+             << infoStat.en_xattr        << ' '
+             << right << setw(w_nlink)   << infoStat.en_nlink   << ' '
+             << right << setw(w_usrname) << infoStat.en_usrname << ' '
+             << right << setw(w_grname)  << infoStat.en_grname  << ' '
+             << right << setw(w_size)    << infoStat.en_size    << ' '
+             << infoStat.en_mtime        << ' '
+             << infoStat.en_name         << endl;
     }
     return returnStat;
 }

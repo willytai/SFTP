@@ -1,6 +1,7 @@
 #include "cmdParser.h"
 #include "cmdCharDef.h"
 #include "util.h"
+#include "dirIO.h"
 #include <cassert>
 #include <string>
 #include <vector>

@@ -7,6 +7,7 @@
 #include <vector>
 #include <climits>
 #include "util.h"
+#include "dirIO.h"
 #include "def.h"
 
 namespace LISTING     /* helper functions for 'lls' and 'ls' */
