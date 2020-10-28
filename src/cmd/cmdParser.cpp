@@ -4,6 +4,7 @@
 #include "dirIO.h"
 #include <cassert>
 #include <string>
+#include <utility>
 #include <vector>
 
 extern errorMgr errMgr;
@@ -129,17 +130,13 @@ cmdStat cmdParser::interpretateAndExecute() const {
     else return cmdHandler->execute(opt);
 }
 
-/*****************************************
- * String comparisons are CASE SENSITIVE
- * This function is mainly used to check for 
- * command ambiguity and does not necessarrily
- * returns the corresponing cmdHandler 
- * EX:
- *    if there are two keys: "ga", "gu" and 
- *    cmd="g", it returns which ever is 
- *    first traversed
- *****************************************/
-// TODO: the EXACT handler should be returned instead of the first one that partialy matches
+/**************************************
+ * -- comparisons are CASE SENSITIVE  *
+ *    in command strings              *
+ * -- for a command to be recognized, *
+ *    the query string has to be at   *
+ *    least as long as the keyword    *
+ *************************************/
 cmdExec* cmdParser::getCmdHandler(const std::string& cmd) const {
     for (const auto& pair : _cmdMap) {
         const auto& cmdHandler = pair.second;
@@ -147,15 +144,9 @@ cmdExec* cmdParser::getCmdHandler(const std::string& cmd) const {
         const auto& optional   = cmdHandler->getOptionalStr();
 
         if ( cmd.length() > keyword.length()+optional.length() ) continue;
-        else if ( cmd.length() > keyword.length() ) {
-            if ( UTIL::strNcmp(cmd, keyword+optional, cmd.size()) == 0 ) {
-                return cmdHandler;
-            }
-        }
-        else {
-            if ( UTIL::strNcmp(cmd, keyword, cmd.size()) == 0) {
-                return pair.second;
-            }
+        if ( cmd.length() < keyword.length() ) continue;
+        if ( UTIL::strNcmp(cmd, keyword+optional, cmd.size()) == 0 ) {
+            return cmdHandler;
         }
     }
 
@@ -205,6 +196,11 @@ void cmdParser::insertChar(char c, int count) {
 
 }
 
+void cmdParser::insertStr(const char* str, size_t count) {
+    for (size_t i = 0; i < count; ++i) {
+        this->insertChar(str[i]);
+    }
+}
 
 /***********************/
 /* move _bufPtr to pos */
@@ -274,12 +270,185 @@ void cmdParser::deleteChar() {
     --_bufEnd;
 }
 
-// TODO: tab keys
+// complete commands or file paths or just tabs
 void cmdParser::autoComplete() {
-    std::vector<std::string> ans;
-    UTIL::readDir("./", ans);
-    for (auto s : ans) {
-        cout << s << endl;
+    std::vector<std::string> tokens;
+    std::string buf; buf.resize(_bufPtr-_buf);
+    for (size_t i = 0; i < buf.length(); ++i) buf[i] = _buf[i];
+    UTIL::parseTokens(buf, tokens);
+    if ( tokens.empty() ) {
+        this->insertChar(' ', TAB_STOP);
+    }
+    else if ( tokens.size() == 1 && *(_bufPtr-1) != ' ' ) {
+        this->completeCmd( tokens[0] );
+    }
+    else {
+        if ( *(_bufPtr-1) == ' ' ) {
+            this->completePath( "" );
+        }
+        else {
+            this->completePath( tokens.back() );
+        }
+    }
+}
+
+void cmdParser::completeCmd(const std::string& prtCmd) {
+    int printWidth = MATCH_KEY_OUTPUT_MIN_WIDTH;
+
+    // the second entry in each element indicates whether
+    // the matched item is a direcotry or not
+    std::vector<std::pair<std::string, bool> > matched;
+    for (const auto& pair : _cmdMap) {
+        const auto& key = pair.first;
+        const auto& hdl = pair.second;
+        if ( prtCmd.length() > key.length() ) continue;
+        if ( UTIL::strNcmp( prtCmd, key, prtCmd.length() ) == 0 ) {
+
+            // store the entire command instead of just the keyword
+            matched.emplace_back( hdl->getCmdStr(), false );
+            printWidth = std::max(printWidth, (int)key.length());
+        }
+    }
+
+    if ( matched.size() == 0 ) { // no match, beep
+        bell();
+    }
+    else if ( matched.size() == 1 ) { // found match, complete
+        this->insertStr( matched[0].first.substr(prtCmd.size()).c_str(),
+                         matched[0].first.size()-prtCmd.size() );
+        this->insertChar(' ');
+    }
+    else { // more than one match
+
+        // check whether the matched string can be extended
+        size_t matchIdEnd = prtCmd.size();
+        char   matchChar  = matched[0].first[matchIdEnd];
+        bool   terminate  = false;
+        while (true) {
+            for (size_t i = 1; i < matched.size(); ++i) {
+                if ( matched[i].first[matchIdEnd] != matchChar ) {
+                    terminate = true;
+                    break;
+                }
+            }
+            if (terminate) break;
+            else ++matchIdEnd;
+        }
+
+        if ( matchIdEnd == prtCmd.size() ) { // show matched options
+            this->showMatched( matched, printWidth );
+        }
+        else { // extend matched string
+            this->insertStr( matched[0].first.substr(prtCmd.size(), matchIdEnd-prtCmd.size()).c_str(),
+                             matchIdEnd-prtCmd.size() );
+        }
+    }
+}
+
+// TODO extend matched string buggy
+void cmdParser::completePath(const std::string& prtPath) {
+    int printWidth = MATCH_KEY_OUTPUT_MIN_WIDTH;
+
+    // the second entry in each element indicates whether
+    // the matched item is a direcotry
+    std::vector<std::pair<std::string, bool> > matched;
+
+    // don't show hidden files unless query string starts with '.'
+    bool ignoreHidden = prtPath.size() ? prtPath[0] != '.' : true;
+
+    // make sure to read the correct dir
+    std::string targetDir, prtFile;
+    UTIL::splitPathFile(prtPath, targetDir, prtFile);
+    UTIL::readDir(targetDir.c_str(), matched);
+
+    // check matched
+    for (size_t i = 0; i < matched.size(); ++i) {
+        if ( matched[i].first[0] == '.' && ignoreHidden ) { 
+            std::swap( matched[i], matched.back() );
+            matched.pop_back();
+            --i;
+            continue;
+        }
+        if ( UTIL::strNcmp( prtFile, matched[i].first, prtFile.length() ) != 0 ||
+             prtFile.length() > matched[i].first.length() ) {
+            std::swap( matched[i], matched.back() );
+            matched.pop_back();
+            --i;
+        }
+        else {
+            printWidth = std::max(printWidth, (int)matched[i].first.length());
+        }
+    }
+
+    if ( matched.size() == 0 ) { // no match, beep
+        bell();
+    }
+    else if ( matched.size() == 1 ) { // found match, complete
+        this->insertStr( matched[0].first.substr(prtFile.size()).c_str(),
+                         matched[0].first.size()-prtFile.size() );
+        // insert a trailing space iff entry is NOT a directory
+        if ( !matched[0].second ) this->insertChar(' ');
+        else                      this->insertChar('/');
+    }
+    else { // more than one match
+
+        // check whether the matched string can be extended
+        size_t matchIdEnd = prtFile.size();
+        char   matchChar  = matched[0].first[matchIdEnd];
+        bool   terminate  = false;
+        while (true) {
+            for (size_t i = 1; i < matched.size(); ++i) {
+                if ( matched[i].first[matchIdEnd] != matchChar ) {
+                    terminate = true;
+                    break;
+                }
+            }
+            if (terminate) break;
+            else ++matchIdEnd;
+        }
+
+        if ( matchIdEnd == prtFile.size() ) { // show matched options
+            this->showMatched( matched, printWidth );
+        }
+        else { // extend matched string
+            this->insertStr( matched[0].first.substr(prtFile.size(), matchIdEnd-prtFile.size()).c_str(),
+                             matchIdEnd-prtFile.size() );
+        }
+    }
+}
+
+void cmdParser::showMatched(const std::vector<std::pair<std::string, bool> >& matched, int printWidth) {
+    int twidth = UTIL::getTermWidth();
+    int nItms  = twidth / (printWidth + 1);
+    int count  = 0;
+
+    // print matches after newline
+    cout << endl;
+    for (size_t i = 0; i < matched.size(); ++i) {
+        cout << left << setw(printWidth) << matched[i].first;
+        if ( ++count == nItms ) {
+            count = 0;
+            cout << endl;
+        }
+        else cout << ' ';
+    }
+    if ( matched.size()%nItms ) cout << endl;
+
+    // re-print what _buf contains
+    this->rePrintBuf();
+}
+
+void cmdParser::rePrintBuf() {
+    this->printPrompt();
+    size_t length = _bufEnd - _buf;
+    for (size_t i = 0; i < length; ++i) {
+        cout << _buf[i];
+    }
+
+    // move the cursor to where it belongs
+    length = _bufEnd - _bufPtr;
+    for (size_t i = 0; i < length; ++i) {
+        cout << char(BACK_SPACE_CHAR);
     }
 }
 

@@ -9,6 +9,7 @@
 #include <grp.h>
 #include <pwd.h>
 #include <time.h>
+#include <utility>
 #include <vector>
 #include <string>
 
@@ -16,7 +17,7 @@ namespace UTIL
 {
 
 bool   readDir(const char*, std::vector<dirent*>&);
-bool   readDir(const char*, std::vector<std::string>&);
+bool   readDir(const char*, std::vector<std::pair<std::string, bool> >&);
 
 struct EntryStat
 {

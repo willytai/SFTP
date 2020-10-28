@@ -24,6 +24,10 @@ int getTermWidth();
 
 // home directory
 void getHomeDir(const char**);
+
+// split into directory and filename
+void splitPathFile(const std::string&, std::string&, std::string&);
+
 }
 
 #endif /* __UTIL_H__ */

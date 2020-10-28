@@ -1,17 +1,17 @@
 #include <string.h>
+#include <utility>
 #include "dirIO.h"
 
 namespace UTIL
 {
 // returns false if dir cannot be opened
-// container will contain all the names of the stuffs under dir
-// including hidden files
-bool readDir(const char* dir, std::vector<std::string>& container) { // returns filenames only
+// container will contain filenames and whether the corresponding entry is a directory
+bool readDir(const char* dir, std::vector<std::pair<std::string, bool> >& container) { 
     DIR* dirptr = opendir(dir);
     if ( dirptr == NULL ) return false;
     struct dirent* direntry;
     while ( (direntry = readdir(dirptr)) != NULL ) {
-        container.push_back(direntry->d_name);
+        container.emplace_back( direntry->d_name, direntry->d_type==DT_DIR );
     }
     return true;
 }

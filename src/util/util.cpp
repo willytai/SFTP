@@ -104,12 +104,18 @@ void toHuman(double* val, char* unit) {
 
 int getTermWidth() {
     struct winsize ws;
-    ioctl(STDIN_FILENO, TIOCGWINSZ, &ws);
+    ioctl(STDOUT_FILENO, TIOCGWINSZ, &ws);
     return ws.ws_col;
 }
 
 void getHomeDir(const char** h) {
     *h = getpwuid(getuid())->pw_dir;
+}
+
+void splitPathFile(const std::string& full, std::string& dir, std::string& file) {
+    size_t end = full.find_last_of('/');
+    dir  = (end == std::string::npos) ? "./" : full.substr(0, end);
+    file = (end+1 == full.size())     ? ""   : full.substr(end+1); // npos == -1
 }
 
 }

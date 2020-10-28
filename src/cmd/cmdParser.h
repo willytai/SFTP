@@ -61,10 +61,8 @@ public:
     std::string        getCmdStr() const { return _key+_opt; }
 
 private:
-    std::string _opt;
-
-    // just for error printing, not really needed
     std::string _key;
+    std::string _opt;
 
 protected:
     mutable int _flags;
@@ -128,6 +126,7 @@ class cmdParser
 #define HISTORY_SIZE 1000
 #define TAB_STOP 4
 #define PG_OFFSET 10
+#define MATCH_KEY_OUTPUT_MIN_WIDTH 8
 
 typedef std::unordered_map<std::string, cmdExec*> cmdMAP;
 typedef std::pair<std::string, cmdExec*>          cmdKeyHandlerPair;
@@ -164,12 +163,17 @@ private:
     void printPrompt();
 
     void autoComplete();
+    void completeCmd(const std::string&);
+    void completePath(const std::string&);
+    void showMatched(const std::vector<std::pair<std::string, bool> >&, int);
+    void rePrintBuf();
     void insertChar(char, int count = 1);
+    void insertStr(const char*, size_t);
     void moveBufPtr(const char*);
     void backSpaceChar();
     void deleteChar();
-    void retrieveHistory(short);
     void newLineCmd();
+    void retrieveHistory(short);
     void makeCopy();
 
 private:

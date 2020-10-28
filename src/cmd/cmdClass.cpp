@@ -6,8 +6,8 @@
 /***************************************/
 // this is the only function of cmdParser that is implemented here
 void cmdParser::regCmd() {
-    if ( this->regEachCmd("lls",   2, new llsCmd())   == CMD_REG_FAIL ||
-         this->regEachCmd("lcd",   2, new lcdCmd())   == CMD_REG_FAIL ||
+    if ( this->regEachCmd("lls",   3, new llsCmd())   == CMD_REG_FAIL ||
+         this->regEachCmd("lcd",   3, new lcdCmd())   == CMD_REG_FAIL ||
          this->regEachCmd("ls",    2, new lsCmd())    == CMD_REG_FAIL ||
          this->regEachCmd("cd",    2, new cdCmd())    == CMD_REG_FAIL ||
          this->regEachCmd("mkdir", 5, new mkdirCmd()) == CMD_REG_FAIL ||
