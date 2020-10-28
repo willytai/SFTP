@@ -111,6 +111,7 @@ private:
     void cmdError();
     void cmdOptIllegal();
     void cmdExecError();
+    void cmdArgTooMany();
 
 private:
     // colorful print or not

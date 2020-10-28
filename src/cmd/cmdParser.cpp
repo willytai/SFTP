@@ -320,6 +320,7 @@ void cmdParser::retrieveHistory(short tID) {
     _hisID = tID;
 }
 
+// TODO: print pwd in prompt
 void cmdParser::newLineCmd() {
 
     // save history

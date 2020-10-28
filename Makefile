@@ -5,7 +5,7 @@ EXEC      = mySFTP
 SRCLIBDIR = lib#                                       -- lib dir for source code
 DIRS      = bin include $(SRCLIBDIR)
 
-PKGS    = cmd util sftp#                               -- packages from source code
+PKGS    = util sftp cmd#                               -- packages from source code
 SRCLIBS = $(addsuffix .a, $(addprefix lib, $(PKGS)))#  -- the actual libs from source code
 EXTPKG  = ssh#                                         -- external libs required for source code
 ALLPKGS = $(PKGS) $(EXTPKG)#                           -- all libs for source code

@@ -31,7 +31,6 @@ bool Printer::print(const dirCntMap& dirContent) const {
  * long print *
  *************/
 // TODO: print symbolic links in correct format
-// TODO: print format weird for long filenames (Desktop)
 bool Printer::longPrint(const char* dirName, const Files& entries) const {
     bool returnStat = true;
     bool PRINT_ALL  = this->checkFlag(LIST_ALL);
@@ -101,6 +100,7 @@ bool Printer::longPrint(const char* dirName, const Files& entries) const {
 /****************
  * column print *
  ***************/
+// TODO: print format weird for long filenames (Desktop)
 bool Printer::columnPrint(const Files& entries) const {
     bool returnStat = true;
     bool PRINT_ALL  = this->checkFlag(LIST_ALL);
@@ -114,6 +114,7 @@ bool Printer::columnPrint(const Files& entries) const {
     // max length of filename
     for (size_t i = 0; i < entries.size(); ++i) {
         const auto& info = entries[i];
+        if ( !PRINT_ALL && info->d_name[0] == '.') continue;
         w_usrname = std::max(w_usrname, UTIL::wLength(info->d_name));
     }
 
@@ -126,10 +127,13 @@ bool Printer::columnPrint(const Files& entries) const {
         const auto& info = entries[i];
         if ( !PRINT_ALL && info->d_name[0] == '.') continue;
         cout << left << setw(w_usrname) << info->d_name;
-        if ( ++count == nfiles ) cout << endl;
+        if ( ++count == nfiles ) {
+            count = 0;
+            cout << endl;
+        }
         else cout << ' ';
     }
-    if ( count != nfiles ) cout << endl;
+    if ( entries.size()%nfiles ) cout << endl;
 
     return returnStat;
 }

@@ -105,7 +105,10 @@ void llsCmd::help() const {
 cmdStat lcdCmd::execute(const std::string& option) const {
     vecstr tokens;
     UTIL::parseTokens(option, tokens);
-    if ( tokens.size() > 1 ) return CMD_ARG_TOO_MANY;
+    if ( tokens.size() > 1 ) {
+        errMgr.setErrCmd("lcd");
+        return CMD_ARG_TOO_MANY;
+    }
     const std::string& target = tokens.size() == 0 ? _home : tokens[0];
     if ( chdir(target.c_str()) != 0 ) {
         errMgr.setErrCmd("lcd");

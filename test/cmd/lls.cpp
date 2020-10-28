@@ -3,8 +3,6 @@
 #include "../testHelper.h"
 #include "cmdParser.h"
 
-// this is to avoid weird charaters from file
-
 errorMgr errMgr;
 
 TEST_CASE( "Error Message", "[lls]" )
@@ -19,7 +17,7 @@ TEST_CASE( "Error Message", "[lls]" )
 
     // define macro for all test sections
     # define TEST_SECTION(TCASE, ERROR)                                                             \
-    SECTION( "["#TCASE"] "#ERROR)                                                                 \
+    SECTION( "["#TCASE"] "#ERROR)                                                                   \
     {                                                                                               \
         cerrToString(&cerrBuf);                                                                     \
         coutToString(&coutBuf);                                                                     \

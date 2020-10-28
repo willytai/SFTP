@@ -1,0 +1,3 @@
+lcd lls/dirforcheck
+lls
+lcd ../../

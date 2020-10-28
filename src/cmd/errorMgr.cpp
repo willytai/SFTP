@@ -10,9 +10,10 @@ static const cmdExec* ErrorHandler;
 
 void errorMgr::handle(const cmdStat& errCode) {
     switch (errCode) {
-        case CMD_ERROR:       this->cmdError();      break;
-        case CMD_OPT_ILLEGAL: this->cmdOptIllegal(); break;
-        case CMD_EXEC_ERROR:  this->cmdExecError();  break;
+        case CMD_ERROR:        this->cmdError();      break;
+        case CMD_OPT_ILLEGAL:  this->cmdOptIllegal(); break;
+        case CMD_EXEC_ERROR:   this->cmdExecError();  break;
+        case CMD_ARG_TOO_MANY: this->cmdArgTooMany(); break;
         default: return;
     }
     ErrorOPT.clear();
@@ -65,8 +66,13 @@ void errorMgr::cmdOptIllegal() {
 }
 
 void errorMgr::cmdExecError() {
-    std::string msg = ErrorCMD+": "+ErrorArg;
     if ( _pretty ) cerr << BOLD_RED;
-    perror(msg.c_str());
+    cerr << ErrorCMD << ": " << ErrorArg << ": " << strerror(errno) << endl;
+    if ( _pretty ) cerr << COLOR_RESET;
+}
+
+void errorMgr::cmdArgTooMany() {
+    if ( _pretty ) cerr << BOLD_RED;
+    cerr << ErrorCMD << ": Too many arguments" << endl;
     if ( _pretty ) cerr << COLOR_RESET;
 }
