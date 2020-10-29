@@ -345,7 +345,7 @@ void cmdParser::completeCmd(const std::string& prtCmd) {
     }
 }
 
-// TODO extend matched string buggy
+// TODO case insensitive comparison
 void cmdParser::completePath(const std::string& prtPath) {
     int printWidth = MATCH_KEY_OUTPUT_MIN_WIDTH;
 
@@ -394,9 +394,11 @@ void cmdParser::completePath(const std::string& prtPath) {
 
         // check whether the matched string can be extended
         size_t matchIdEnd = prtFile.size();
-        char   matchChar  = matched[0].first[matchIdEnd];
         bool   terminate  = false;
         while (true) {
+            char matchChar;
+            if ( matched[0].first.size() == prtFile.size() ) break;
+            else matchChar = matched[0].first[matchIdEnd];
             for (size_t i = 1; i < matched.size(); ++i) {
                 if ( matched[i].first[matchIdEnd] != matchChar ) {
                     terminate = true;
