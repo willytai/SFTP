@@ -2,26 +2,26 @@
 #include <catch2/catch.hpp>
 #include "dirIO.h"
 
-TEST_CASE("readDir", "[UTIL]")
+TEST_CASE( "-- readDir --", "[UTIL]")
 {
     SECTION("unsuccessful reading")
     {
-        std::vector<std::string> container;
+        std::vector<std::pair<std::string, bool> > container;
         REQUIRE( UTIL::readDir("no such dir", container)  == false );
         REQUIRE( container.size() == 0 );
     }
     SECTION("return filenames only")
     {
-        std::vector<std::string> container;
+        std::vector<std::pair<std::string, bool> > container;
         REQUIRE( UTIL::readDir("./dirforcheck", container) == true );
         REQUIRE( container.size() == 7 );
-        REQUIRE( container[0] == "." );
-        REQUIRE( container[1] == ".." );
-        REQUIRE( container[2] == "file2.txt" );
-        REQUIRE( container[3] == "file3.txt" );
-        REQUIRE( container[4] == "file1.txt" );
-        REQUIRE( container[5] == "test.txt" );
-        REQUIRE( container[6] == "file1.lnk" );
+        REQUIRE( container[0].first == "." );
+        REQUIRE( container[1].first == ".." );
+        REQUIRE( container[2].first == "file2.txt" );
+        REQUIRE( container[3].first == "file3.txt" );
+        REQUIRE( container[4].first == "file1.txt" );
+        REQUIRE( container[5].first == "test.txt" );
+        REQUIRE( container[6].first == "file1.lnk" );
     }
     SECTION("return entry properties")
     {
@@ -34,7 +34,7 @@ TEST_CASE("readDir", "[UTIL]")
         REQUIRE( container[6]->d_type == DT_LNK );
     }
 }
-TEST_CASE("getEntryStat", "[UTIL]")
+TEST_CASE( "-- getEntryStat --", "[UTIL]")
 {
     SECTION("different ways of passing dir path")
     {

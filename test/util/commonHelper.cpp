@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 
-TEST_CASE("parseTokens", "[UTIL]")
+TEST_CASE( "-- parseTokens --", "[UTIL]" )
 {
     SECTION("null string")
     {
@@ -80,7 +80,7 @@ TEST_CASE("parseTokens", "[UTIL]")
         REQUIRE( container[3]     == "his  " );
     }
 }
-TEST_CASE("strNcmp", "[UTIL]")
+TEST_CASE( "-- strNcmp --", "[UTIL]" )
 {
     SECTION("identical strings")
     {
@@ -99,7 +99,7 @@ TEST_CASE("strNcmp", "[UTIL]")
         REQUIRE( UTIL::strNcmp("asdfwhathefuck", "asdfshit", 5) != 0 );
     }
 }
-TEST_CASE("wLength", "[UTIL]")
+TEST_CASE( "-- wLength --", "[UTIL]" )
 {
     SECTION("word length of strings")
     {
@@ -118,7 +118,7 @@ TEST_CASE("wLength", "[UTIL]")
         REQUIRE( UTIL::wLength(0xffffffffffffffff) == 20 );
     }
 }
-TEST_CASE("toHuman", "[UTIL]")
+TEST_CASE( "-- toHuman --", "[UTIL]" )
 {
     #define prepData(v, u)         \
         val  = v;                  \
@@ -269,4 +269,27 @@ TEST_CASE("toHuman", "[UTIL]")
         REQUIRE( unit == 'P' ); 
     }
     #undef prepData
+}
+TEST_CASE( "-- split path --", "[UTIL]" )
+{
+    std::string dir, file;
+    UTIL::splitPathFile( "", dir, file );
+    REQUIRE( dir  == "./" );
+    REQUIRE( file == "" );
+
+    UTIL::splitPathFile( "./", dir, file );
+    REQUIRE( dir  == "." );
+    REQUIRE( file == "" );
+
+    UTIL::splitPathFile( ".", dir, file );
+    REQUIRE( dir  == "./" );
+    REQUIRE( file == "." );
+
+    UTIL::splitPathFile( "asdf", dir, file );
+    REQUIRE( dir  == "./" );
+    REQUIRE( file == "asdf" );
+
+    UTIL::splitPathFile( "asdf/what/shit", dir, file );
+    REQUIRE( dir  == "asdf/what" );
+    REQUIRE( file == "shit" );
 }
