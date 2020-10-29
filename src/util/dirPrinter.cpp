@@ -90,8 +90,16 @@ bool Printer::longPrint(const char* dirName, const Files& entries) const {
         else {
             cout << right << setw(w_size) << infoStat.en_size << ' ';
         }
-        cout << infoStat.en_mtime        << ' '
-             << infoStat.en_name         << endl;
+        cout << infoStat.en_mtime        << ' ';
+        if ( _colorful && infoStat.en_type == 'd' ) {
+            cout << BOLD_CYAN << infoStat.en_name << COLOR_RESET << endl;
+        }
+        else if ( _colorful && infoStat.en_type == 'l' ) {
+            cout << BOLD_MAGENTA << infoStat.en_name << COLOR_RESET << endl;
+        }
+        else {
+            cout << infoStat.en_name << endl;
+        }
     }
     return returnStat;
 }

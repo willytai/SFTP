@@ -35,7 +35,7 @@ cmdStat llsCmd::execute(const std::string& option) const {
     if ( queryDir.size() == 0 ) queryDir.push_back("./");
 
     // the printer
-    LISTING::Printer* dirPrinter = new LISTING::Printer();
+    LISTING::Printer* dirPrinter = new LISTING::Printer( errMgr.colorOutput() );
 
     // check options
     // only support single char flags for now

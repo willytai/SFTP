@@ -34,12 +34,13 @@ enum lsFlag
 class Printer
 {
 public:
-    Printer() : _flags(0), _illegal(false), _pDirName(false) {}
+    Printer(bool c) : _flags(0), _illegal(false), _pDirName(false) { _colorful = c; }
     ~Printer() {}
 
     bool setFlag         (const char&);
     bool print           (const dirCntMap&) const;
     bool illegal         ()                 const;
+    void setColorPrinter () { _colorful = true; };
     void setPrintDirName (bool);
 
     const char* getErrEntry() const { return _errEntry; }
@@ -55,6 +56,7 @@ private:
     int     _flags;
     bool    _illegal;
     bool    _pDirName;
+    bool    _colorful;
 
     // the LATEST entry/dir that wasn't able to be printed (for error handling)
     mutable const char*   _errEntry;

@@ -90,15 +90,16 @@ public:                                        \
 class errorMgr
 {
 public:
-    errorMgr() : _pretty(false) {}
+    errorMgr() : _colorful(false) {}
     ~errorMgr() {}
 
     void handle(const cmdStat&);
+    bool colorOutput() const { return _colorful; }
 
     // for 'ls' and 'lls'
     void handleNonExistDir(const std::string&, const std::vector<std::string>&, bool) const;
 
-    void setColorfulPrint () { _pretty = true; }
+    void setColorfulOutput() { _colorful = true; }
     void setErrCmd        (const std::string&)  const;
     void setErrOpt        (const std::string&)  const;
     void setErrArg        (const std::string&)  const;
@@ -113,7 +114,7 @@ private:
 
 private:
     // colorful print or not
-    bool _pretty;
+    bool _colorful;
 };
 
 

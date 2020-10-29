@@ -52,27 +52,27 @@ void errorMgr::setErrArg(const std::string& a) const {
 }
 
 void errorMgr::cmdError() {
-    if ( _pretty ) cerr << BOLD_RED;
+    if ( _colorful ) cerr << BOLD_RED;
     cerr << "Command Error: " << ErrorCMD << endl;
-    if ( _pretty ) cerr << COLOR_RESET;
+    if ( _colorful ) cerr << COLOR_RESET;
 }
 
 void errorMgr::cmdOptIllegal() {
-    if ( _pretty ) cerr << BOLD_RED;
+    if ( _colorful ) cerr << BOLD_RED;
     cerr << "Illegal Option for \'" << ErrorHandler->getKeyWord() << ErrorHandler->getOptional() << "\':";
     for (const auto& opt : ErrorOPT) cerr << " -" << opt;
-    if ( _pretty ) cerr << COLOR_RESET;
+    if ( _colorful ) cerr << COLOR_RESET;
     cerr << endl;
 }
 
 void errorMgr::cmdExecError() {
-    if ( _pretty ) cerr << BOLD_RED;
+    if ( _colorful ) cerr << BOLD_RED;
     cerr << ErrorCMD << ": " << ErrorArg << ": " << strerror(errno) << endl;
-    if ( _pretty ) cerr << COLOR_RESET;
+    if ( _colorful ) cerr << COLOR_RESET;
 }
 
 void errorMgr::cmdArgTooMany() {
-    if ( _pretty ) cerr << BOLD_RED;
+    if ( _colorful ) cerr << BOLD_RED;
     cerr << ErrorCMD << ": Too many arguments" << endl;
-    if ( _pretty ) cerr << COLOR_RESET;
+    if ( _colorful ) cerr << COLOR_RESET;
 }

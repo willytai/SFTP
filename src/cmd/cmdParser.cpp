@@ -439,13 +439,19 @@ void cmdParser::completePath(const std::string& prtPath) {
 
 void cmdParser::showMatched(const std::vector<std::pair<std::string, bool> >& matched, int printWidth) {
     int twidth = UTIL::getTermWidth();
-    int nItms  = twidth / (printWidth + 1);
+    int nItms  = twidth / (printWidth + 2);
     int count  = 0;
 
     // print matches after newline
     cout << endl;
     for (size_t i = 0; i < matched.size(); ++i) {
-        cout << left << setw(printWidth) << matched[i].first;
+        if ( !matched[i].second ) {
+            cout << left << setw(printWidth) << matched[i].first;
+        }
+        else {
+            cout << BOLD_RED;
+            cout << matched[i].first << COLOR_RESET << left << setw(printWidth-(int)matched[i].first.size()) << '/';
+        }
         if ( ++count == nItms ) {
             count = 0;
             cout << endl;
@@ -540,7 +546,7 @@ void cmdParser::printPrompt() {
 
 void cmdParser::makeCopy() {
 
-    // TODO: make sure that when the _bufTmpPtr is no 
+    // TODO: make sure that when the _bufTmpPtr is not
     //       pointing to the end, history function stils work
 
     // make a copy
