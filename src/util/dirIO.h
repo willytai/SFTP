@@ -1,6 +1,7 @@
 #ifndef __DIR_IO_H__
 #define __DIR_IO_H__
 
+#include <stdio.h>
 #include <sys/types.h>
 #include <sys/xattr.h>
 #include <sys/acl.h>
@@ -9,7 +10,6 @@
 #include <grp.h>
 #include <pwd.h>
 #include <time.h>
-#include <utility>
 #include <vector>
 #include <string>
 
@@ -45,6 +45,7 @@ void   getXattrChar (const char* filename, char& xchar, char* namebuf = NULL, si
 void   getTimeStampStr(const struct timespec& mtime, char* mtimeStr);
 void   getUnameByUid(const uid_t& uid, const char**);
 void   getGnameByGid(const gid_t& gid, const char**);
+char*  readLink     (const char*, const char*);
 
 }
 

@@ -95,7 +95,11 @@ bool Printer::longPrint(const char* dirName, const Files& entries) const {
             cout << BOLD_CYAN << infoStat.en_name << COLOR_RESET << endl;
         }
         else if ( _colorful && infoStat.en_type == 'l' ) {
-            cout << BOLD_MAGENTA << infoStat.en_name << COLOR_RESET << endl;
+            cout << BOLD_MAGENTA << infoStat.en_name << COLOR_RESET;
+            cout << " -> " << UTIL::readLink(dirName, infoStat.en_name) << endl;
+        }
+        else if ( _colorful && infoStat.en_perm[2] == 'x' ) {
+            cout << NORMAL_RED << infoStat.en_name << COLOR_RESET << endl;
         }
         else {
             cout << infoStat.en_name << endl;

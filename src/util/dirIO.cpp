@@ -1,6 +1,6 @@
-#include <string.h>
-#include <utility>
 #include "dirIO.h"
+#include <unistd.h>
+#include <string.h>
 
 namespace UTIL
 {
@@ -50,7 +50,7 @@ bool getEntryStat(const char* dirName, const char* filename, struct EntryStat* e
     else fullname += std::string(filename);
 
     struct stat statbuf;
-    if ( stat(fullname.c_str(), &statbuf) != 0 ) return false;
+    if ( lstat(fullname.c_str(), &statbuf) != 0 ) return false;
     getTypeChar     (statbuf.st_mode, entryStat->en_type);
     getPermStr      (statbuf.st_mode, entryStat->en_perm);
     getXattrChar    (filename,        entryStat->en_xattr);
@@ -125,6 +125,13 @@ void getUnameByUid(const uid_t& uid, const char** target) {
 
 void getGnameByGid(const gid_t& gid, const char** target) {
     *target = getgrgid(gid)->gr_name;
+}
+
+static char linkbuf[1024];
+char* readLink(const char* dir, const char* file) {
+    std::string path = std::string(dir) + std::string(file);
+    readlink( path.c_str(), linkbuf, 1024 );
+    return linkbuf;
 }
 
 }

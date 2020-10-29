@@ -4,7 +4,6 @@
 #include "dirIO.h"
 #include <cassert>
 #include <string>
-#include <utility>
 #include <vector>
 
 extern errorMgr errMgr;
