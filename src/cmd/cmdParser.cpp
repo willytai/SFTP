@@ -295,18 +295,17 @@ void cmdParser::autoComplete() {
 void cmdParser::completeCmd(const std::string& prtCmd) {
     int printWidth = MATCH_KEY_OUTPUT_MIN_WIDTH;
 
-    // the second entry in each element indicates whether
-    // the matched item is a direcotry or not
+    // second entry in each element indicates whether
+    // the matched item is a direcotry
+    // store the entire command instead of just the keyword
     std::vector<std::pair<std::string, bool> > matched;
     for (const auto& pair : _cmdMap) {
-        const auto& key = pair.first;
-        const auto& hdl = pair.second;
-        if ( prtCmd.length() > key.length() ) continue;
-        if ( UTIL::strNcmp( prtCmd, key, prtCmd.length() ) == 0 ) {
-
-            // store the entire command instead of just the keyword
-            matched.emplace_back( hdl->getCmdStr(), false );
-            printWidth = std::max(printWidth, (int)key.length());
+        const auto& handler = pair.second;
+        const auto& fullkey = handler->getCmdStr();
+        if ( prtCmd.length() > fullkey.length() ) continue;
+        if ( UTIL::strNcmp( prtCmd, fullkey, prtCmd.length() ) == 0 ) {
+            matched.emplace_back( fullkey, false );
+            printWidth = std::max(printWidth, (int)fullkey.length());
         }
     }
 
