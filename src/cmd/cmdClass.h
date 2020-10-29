@@ -41,6 +41,7 @@ cmdClass(chmodCmd);
 /* for program control */
 /***********************/
 cmdClass(quitCmd);
+cmdClass(clearCmd);
 
 
 /************/
@@ -48,6 +49,7 @@ cmdClass(quitCmd);
 /************/
 cmdClass(putCmd);
 cmdClass(getCmd);
+cmdClass(helpCmd);
 
 
 #endif /* __CMD_CLASS_H__ */
