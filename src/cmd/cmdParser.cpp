@@ -345,7 +345,7 @@ void cmdParser::completeCmd(const std::string& prtCmd) {
     }
 }
 
-// TODO case insensitive comparison
+// TODO zsh-like tab selection
 void cmdParser::completePath(const std::string& prtPath) {
     int printWidth = MATCH_KEY_OUTPUT_MIN_WIDTH;
 
@@ -369,7 +369,7 @@ void cmdParser::completePath(const std::string& prtPath) {
             --i;
             continue;
         }
-        if ( UTIL::strNcmp( prtFile, matched[i].first, prtFile.length() ) != 0 ||
+        if ( UTIL::strNcmp_soft( prtFile, matched[i].first, prtFile.length() ) != 0 ||
              prtFile.length() > matched[i].first.length() ) {
             std::swap( matched[i], matched.back() );
             matched.pop_back();
@@ -384,8 +384,9 @@ void cmdParser::completePath(const std::string& prtPath) {
         bell();
     }
     else if ( matched.size() == 1 ) { // found match, complete
-        this->insertStr( matched[0].first.substr(prtFile.size()).c_str(),
-                         matched[0].first.size()-prtFile.size() );
+        // re-insert the matched string to activate case-insensitive comparison
+        for (size_t i = 0; i < prtFile.size(); ++i) this->backSpaceChar();
+        this->insertStr( matched.front().first.c_str(), matched.front().first.length() );
         // insert a trailing space iff entry is NOT a directory
         if ( !matched[0].second ) this->insertChar(' ');
         else                      this->insertChar('/');
@@ -413,8 +414,26 @@ void cmdParser::completePath(const std::string& prtPath) {
             this->showMatched( matched, printWidth );
         }
         else { // extend matched string
-            this->insertStr( matched[0].first.substr(prtFile.size(), matchIdEnd-prtFile.size()).c_str(),
-                             matchIdEnd-prtFile.size() );
+            // -- if the matched strings are all identical after case sensitive comparison,
+            //    re-insert the matched string to activate case-insensitive comparison,
+            //    otherwise, keep the original prtFile
+            bool caseConsistent = true;
+            const std::string& ref = matched.front().first;
+            for (size_t i = 1; i < matched.size(); ++i) {
+                if ( UTIL::strNcmp(ref, matched[i].first, matchIdEnd) != 0 ) {
+                    caseConsistent = false;
+                    break;
+                }
+            }
+
+            if ( caseConsistent ) {
+                for (size_t i = 0; i < prtFile.size(); ++i) this->backSpaceChar();
+                this->insertStr( matched.front().first.c_str(), matchIdEnd );
+            }
+            else {
+                this->insertStr( matched.front().first.substr(prtFile.size(), matchIdEnd-prtFile.size()).c_str(),
+                                 matchIdEnd-prtFile.size());
+            }
         }
     }
 }

@@ -133,8 +133,7 @@ bool Printer::columnPrint(const Files& entries) const {
         }
         else cout << ' ';
     }
-    if ( entries.size()%nfiles ) cout << endl;
-
+    if ( count ) cout << endl;
     return returnStat;
 }
 

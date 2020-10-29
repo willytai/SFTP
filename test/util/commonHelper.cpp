@@ -80,6 +80,25 @@ TEST_CASE( "-- parseTokens --", "[UTIL]" )
         REQUIRE( container[3]     == "his  " );
     }
 }
+TEST_CASE( "-- strNcmp_soft --", "[UTIL]" )
+{
+    SECTION("identical strings")
+    {
+        REQUIRE( UTIL::strNcmp_soft("identical", "identical", 9) == 0 );
+        REQUIRE( UTIL::strNcmp_soft("\tidEntical", "\tidentiCal", 10) == 0 );
+        REQUIRE( UTIL::strNcmp_soft("';pouhFckf e6 af$\t5|fgs\n?sd!", "';Pouhfckf e6 af$\t5|fgs\n?sd!", 28) == 0 );
+    }
+    SECTION("different strings")
+    {
+        REQUIRE( UTIL::strNcmp_soft("qhw;sdfasdf", "823985uhasdf", 11) != 0 );
+        REQUIRE( UTIL::strNcmp_soft("qhw;sdfasdf", "82sdf", 5) != 0 );
+    }
+    SECTION("different N")
+    {
+        REQUIRE( UTIL::strNcmp_soft("asdfwhathefuck", "asdfshit", 4) == 0 );
+        REQUIRE( UTIL::strNcmp_soft("asdfwhathefuck", "asdfshit", 5) != 0 );
+    }
+}
 TEST_CASE( "-- strNcmp --", "[UTIL]" )
 {
     SECTION("identical strings")

@@ -64,6 +64,16 @@ size_t strNcmp(const std::string& s1, const std::string& s2, size_t n) {
     return ret;
 }
 
+size_t strNcmp_soft(std::string s1, std::string s2, size_t n) {
+    size_t ret = 0;
+    for (auto& c : s1) c = tolower(c);
+    for (auto& c : s2) c = tolower(c);
+    for (size_t i = 0; i < n; ++i) {
+        ret += abs(int(s1[i]) - int(s2[i]));
+    }
+    return ret;
+}
+
 static const char unitDict[] = {'B', 'K', 'M', 'G', 'T', 'P'};
 void toHuman(double* val, char* unit) {
     size_t intval = size_t((*val));
