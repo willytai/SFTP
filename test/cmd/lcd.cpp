@@ -8,7 +8,6 @@ errorMgr errMgr;
 TEST_CASE( "Error Message" , "[lcd]" )
 {
     cmdParser* cmdMgr = new cmdParser("err");
-    cmdMgr->regCmd();
 
     // redirect stderr and stdout
     std::stringstream cerrBuf;
@@ -21,7 +20,8 @@ TEST_CASE( "Error Message" , "[lcd]" )
     {                                                                                               \
         cerrToString(&cerrBuf);                                                                     \
         coutToString(&coutBuf);                                                                     \
-        cmdMgr->readFile("./lcd/"#TCASE".in");                                                      \
+        cmdMgr->setInFileName("./lcd/"#TCASE".in");                                                 \
+        cmdMgr->readFile();                                                                         \
         REQUIRE( readGolden("./lcd/"#TCASE".out", goldenBuffer) );                                  \
         REQUIRE( goldenBuffer.size() == cerrBuf.str().size() );                                     \
         REQUIRE( strncmp(cerrBuf.str().c_str(), goldenBuffer.c_str(), goldenBuffer.size()) == 0 );  \
@@ -48,12 +48,12 @@ TEST_CASE( "lcd with lls checking", "[lcd]" )
     SECTION( "["#TCASE"] "#ERROR)                                                                   \
     {                                                                                               \
         cmdParser* cmdMgr = new cmdParser("sftp");                                                  \
-        cmdMgr->regCmd();                                                                           \
                                                                                                     \
         cerrToString(&cerrBuf);                                                                     \
         coutToString(&coutBuf);                                                                     \
         REQUIRE( readGolden("./lcd/"#TCASE".out", goldenBuffer) );                                  \
-        cmdMgr->readFile("./lcd/"#TCASE".in");                                                      \
+        cmdMgr->setInFileName("./lcd/"#TCASE".in");                                                 \
+        cmdMgr->readFile();                                                                         \
         REQUIRE( goldenBuffer.size() == coutBuf.str().size() );                                     \
         REQUIRE( strncmp(coutBuf.str().c_str(), goldenBuffer.c_str(), goldenBuffer.size()) == 0 );  \
         cerrReset(&cerrBuf);                                                                        \

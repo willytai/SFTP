@@ -3,13 +3,24 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <libssh/libssh.h>
 #include <libssh/sftp.h>
 #include "def.h"
 
+namespace sftp
+{
+
+enum sftpStat
+{
+    SFTP_OK = 0,
+    SFTP_INIT_FAILED = -1,
+};
+
 class sftpSession
 {
 public:
+    sftpSession();
     sftpSession(const char* hostIP,
                 const char* user,
                 const char* psswd,
@@ -17,22 +28,31 @@ public:
                 int v = 0);
     ~sftpSession();
 
-private:
-    void initSSHSession();
-    bool connectSSH();
-    bool verifyKnownHost();
-    bool authenticate();
+    void setUsrName(const char* u, size_t l) { _usr    = (char*)malloc(l*sizeof(char)); strcpy(_usr,    u); }
+    void setHostIP (const char* h, size_t l) { _hostIP = (char*)malloc(l*sizeof(char)); strcpy(_hostIP, h); }
+    void setPsswd  (const char* p, size_t l) { _psswd  = (char*)malloc(l*sizeof(char)); strcpy(_psswd,  p); }
+    void setPort   (const char* p, size_t l) { _port   = (char*)malloc(l*sizeof(char)); strcpy(_port,   p); }
+    void setVerbose(int v) { _verbosity = v; }
 
-    bool initSFTP();
+    sftpStat start();
+
+private:
+    sftpStat initSSHSession();
+    sftpStat connectSSH();
+    sftpStat verifyKnownHost();
+    sftpStat authenticate();
+
+    sftpStat initSFTP();
 
     ssh_session       _ssh_session;
     sftp_session      _sftp_session;
-    const char*       _hostIP;
-    const char*       _usr;
-    const char*       _psswd;
-    const char*       _port;
+    char*             _hostIP;
+    char*             _usr;
+    char*             _psswd;
+    char*             _port;
     int               _verbosity;
 };
 
+}
 
 #endif /* __SFTPSESSION_H__ */

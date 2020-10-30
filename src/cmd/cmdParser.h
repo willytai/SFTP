@@ -6,6 +6,7 @@
 #include <vector>
 #include <unordered_map>
 #include "def.h"
+#include "sftpSession.h"
 
 
 /******************/
@@ -37,13 +38,31 @@ enum cmdStat
 };
 
 /*****************/
+/* arg pare stat */
+/*****************/
+enum argStat
+{
+    ARG_PARSE_DONE,
+    ARG_PARSE_OPTION_MISSING,
+    ARG_PARSE_OPTION_UNKNOWN,
+    ARG_PARSE_ARG_INVALID,
+    ARG_PARSE_ARG_MISSING,
+
+    #ifdef DEV
+    ARG_PARSE_FROM_FILE,
+    #endif
+
+    ARG_PARSE_ARG_TOO_MANY
+};
+
+/*****************/
 /* command class */
 /*****************/
 class cmdExec
 {
 public:
     cmdExec() : _flags(0) {}
-    ~cmdExec() {}
+    virtual ~cmdExec() {}
 
     virtual cmdStat execute(const std::string&) const = 0;
     virtual void    usage()                     const = 0;
@@ -94,6 +113,8 @@ public:
     ~errorMgr() {}
 
     void handle(const cmdStat&);
+    void handle(const argStat&);
+    void handle(const sftp::sftpStat&);
     bool colorOutput() const { return _colorful; }
 
     // for 'ls' and 'lls'
@@ -133,27 +154,36 @@ typedef std::unordered_map<std::string, cmdExec*> cmdMAP;
 typedef std::pair<std::string, cmdExec*>          cmdKeyHandlerPair;
 
 public:
-    cmdParser(const char* prompt) : _prompt(prompt),
-                                    _bufEnd(NULL),
-                                    _bufPtr(NULL) {
-        _history.clear();
-        _history.reserve(HISTORY_SIZE);
-        _hisID = 0;
-    }
-    ~cmdParser() {}
+    cmdParser(const char* prompt);
+    ~cmdParser();
 
-    // register commands
-    void    regCmd();
+    // TOP API
+    void parse(int, char**);
+
+
+#ifndef DEV
+private:
+#endif
+
+    // parse arguments
+    argStat parseArgs(int, char**);
 
     // read commands
     cmdStat readCmd();
 
+    // register commands
+    void    regCmd();
+
 #ifdef DEV
-    void readFile(const char*);
-    cmdStat readCmdFile();
+    void    readFile();
+    void    setInFileName(const char* f) { _filename = std::string(f); }
+    cmdStat readCmdFile(std::ifstream&);
 #endif
 
+
+#ifdef DEV
 private:
+#endif
     cmdStat readChar(std::istream&);
     cmdStat regEachCmd(std::string, size_t, cmdExec*);
     cmdStat interpretateAndExecute() const;
@@ -195,8 +225,11 @@ private:
     // the map of each keyword to its minCmp
     cmdMAP  _cmdMap;
 
+    // sftp session placeholder
+    sftp::sftpSession* _sftp_sess;
+
 #ifdef DEV
-    std::ifstream _file;
+    std::string _filename;
 #endif
 };
 

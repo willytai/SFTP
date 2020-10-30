@@ -8,6 +8,78 @@
 
 extern errorMgr errMgr;
 
+cmdParser::cmdParser(const char* prompt) {
+    _prompt = prompt;
+    _bufEnd = _bufPtr = _bufTmpPtr = NULL;
+    _sftp_sess = NULL;
+    _history.clear();
+    _history.reserve(HISTORY_SIZE);
+    _hisID = 0;
+    this->regCmd();
+}
+
+cmdParser::~cmdParser() {
+    if ( _sftp_sess != NULL ) delete _sftp_sess;
+    for (auto& pair : _cmdMap) {
+        auto& hndl = pair.second;
+        delete hndl;
+    }
+}
+
+void cmdParser::parse(int argc, char** argv) {
+    argStat astat = this->parseArgs(argc, argv);
+
+    if ( astat == ARG_PARSE_DONE ) {
+        sftp::sftpStat sfstat;
+        if ( (sfstat = _sftp_sess->start()) != sftp::SFTP_OK ) {
+            errMgr.handle(sfstat);
+            return;
+        }
+        while ( this->readCmd() != CMD_EXIT );
+    }
+
+    #ifdef DEV
+    if ( astat == ARG_PARSE_FROM_FILE ) {
+        this->readFile();
+        return;
+    }
+    #endif
+
+    errMgr.handle( astat );
+    exit(-1);
+}
+
+argStat cmdParser::parseArgs(int argc, char** argv) {
+    if ( argc < 2 ) {
+        #ifdef DEV
+        _sftp_sess = new sftp::sftpSession();
+        _sftp_sess->setUsrName( "willytai43", 11 );
+        _sftp_sess->setHostIP ( "140.112.48.79", 14 );
+        _sftp_sess->setPsswd  ( "09855184", 9 );
+        return ARG_PARSE_DONE;
+        #endif
+        return ARG_PARSE_ARG_MISSING;
+    }
+    if ( argc == 2 ) {
+        // check username and server address
+        std::vector<std::string> tokens;
+        UTIL::parseTokens( argv[1], tokens, '@');
+        _sftp_sess = new sftp::sftpSession();
+        _sftp_sess->setUsrName( tokens[0].c_str(), tokens[0].size()+1 );
+        _sftp_sess->setHostIP ( tokens[1].c_str(), tokens[1].size()+1 );
+        return ARG_PARSE_DONE;
+    }
+    #ifdef DEV
+    if ( argc == 3 ) {
+        if ( argv[1][0] != '-' ) return ARG_PARSE_OPTION_MISSING;
+        if ( strncmp(argv[1] , "-f", 2) != 0 ) return ARG_PARSE_OPTION_UNKNOWN;
+        this->setInFileName( argv[2] );
+        return ARG_PARSE_FROM_FILE;
+    }
+    #endif
+    return ARG_PARSE_ARG_TOO_MANY;
+}
+
 cmdStat cmdParser::readCmd() {
     cmdStat stat = this->readChar(cin);
     if ( stat == CMD_EXECUTE ) {
@@ -16,7 +88,6 @@ cmdStat cmdParser::readCmd() {
     errMgr.handle(stat);
     return stat;
 }
-
 
 
 /*******************/
@@ -557,20 +628,20 @@ void cmdParser::makeCopy() {
 }
 
 #ifdef DEV
-void cmdParser::readFile(const char* filename) {
-    _file.open(filename);
-    if ( !_file.good() ) {
-        std::string msg = "readFile: " + std::string(filename);
+void cmdParser::readFile() {
+    std::ifstream file(_filename);
+    if ( !file.good() ) {
+        std::string msg = "readFile: " + std::string(_filename);
         perror(msg.c_str());
         exit(-1);
     }
 
-    while ( this->readCmdFile() != CMD_EXIT ) {}
-    _file.close();
+    while ( this->readCmdFile(file) != CMD_EXIT ) {}
+    file.close();
 }
 
-cmdStat cmdParser::readCmdFile() {
-    cmdStat stat = this->readChar(_file);
+cmdStat cmdParser::readCmdFile(std::ifstream& file) {
+    cmdStat stat = this->readChar(file);
     if ( stat == CMD_EXECUTE ) {
         stat = this->interpretateAndExecute();
     }

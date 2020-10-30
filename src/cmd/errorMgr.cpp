@@ -19,6 +19,16 @@ void errorMgr::handle(const cmdStat& errCode) {
     ErrorOPT.clear();
 }
 
+// TODO
+void errorMgr::handle(const argStat& errCode) {
+
+}
+
+// TODO
+void errorMgr::handle(const sftp::sftpStat& errCode) {
+
+}
+
 void errorMgr::handleNonExistDir(const std::string& cmd, const std::vector<std::string>& nonExistDir, bool lbreak) const {
     for (const auto& dir : nonExistDir) {
         cerr << cmd << ": " << dir << ": No such file or directory" << endl;

@@ -8,7 +8,6 @@ errorMgr errMgr;
 TEST_CASE( "Error Message", "[lls]" )
 {
     cmdParser* cmdMgr = new cmdParser("err");
-    cmdMgr->regCmd();
 
     // redirect stderr and stdout
     std::stringstream cerrBuf;
@@ -21,7 +20,8 @@ TEST_CASE( "Error Message", "[lls]" )
     {                                                                                               \
         cerrToString(&cerrBuf);                                                                     \
         coutToString(&coutBuf);                                                                     \
-        cmdMgr->readFile("./lls/"#TCASE".in");                                                      \
+        cmdMgr->setInFileName("./lls/"#TCASE".in");                                                 \
+        cmdMgr->readFile();                                                                         \
         REQUIRE( readGolden("./lls/"#TCASE".out", goldenBuffer) );                                  \
         REQUIRE( goldenBuffer.size() == cerrBuf.str().size() );                                     \
         REQUIRE( strncmp(cerrBuf.str().c_str(), goldenBuffer.c_str(), goldenBuffer.size()) == 0 );  \
@@ -45,7 +45,6 @@ TEST_CASE( "Listing Output", "[lls]" )
      ***********************************/
 
     cmdParser* cmdMgr = new cmdParser("sftp");
-    cmdMgr->regCmd();
 
     // redirect stderr and stdout
     std::stringstream cerrBuf;
@@ -54,11 +53,12 @@ TEST_CASE( "Listing Output", "[lls]" )
 
     // define macro for all test sections
     #define TEST_SECTION(T)                                                                         \
-    SECTION( "["#T"] single directory" )                                                         \
+    SECTION( "["#T"] single directory" )                                                            \
     {                                                                                               \
         cerrToString(&cerrBuf);                                                                     \
         coutToString(&coutBuf);                                                                     \
-        cmdMgr->readFile("./lls/"#T".in");                                                          \
+        cmdMgr->setInFileName("./lls/"#T".in");                                                     \
+        cmdMgr->readFile();                                                                         \
         UNSCOPED_INFO( "can't open golden answer" );                                                \
         CHECK( readGolden("./lls/"#T".out", goldenBuffer) );                                        \
         UNSCOPED_INFO( "\033[36m-------------------- result start --------------------\033[37m" );  \
