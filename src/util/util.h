@@ -8,9 +8,9 @@
 namespace UTIL
 {
 // common helper functions
-void   parseTokens(const std::string&, std::vector<std::string>&, char delimiter = ' ');
-size_t strNcmp(const std::string&, const std::string&, size_t);
-size_t strNcmp_soft(std::string, std::string, size_t);
+void parseTokens(const std::string&, std::vector<std::string>&, char delimiter = ' ');
+int  strNcmp(const std::string&, const std::string&, size_t);
+int  strNcmp_soft(const std::string&, const std::string&, size_t);
 
 // length of string or integers
 int    wLength(size_t);

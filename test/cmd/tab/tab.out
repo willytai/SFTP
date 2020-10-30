@@ -1,0 +1,11 @@
+sftp> lcd t tab
+tab.o    tab.cpp  tab/     
+sftp> lcd tab/tab.
+tab.in   tab.out  
+sftp> lcd tab/tab.
+sftp> l
+lls      ls       lcd      
+sftp> lcd ta  tab/.
+./       ../      
+sftp> lcd tab/..  ../t tab
+sftp> 

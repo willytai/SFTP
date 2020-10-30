@@ -38,6 +38,10 @@ void cmdParser::parse(int argc, char** argv) {
         while ( this->readCmd() != CMD_EXIT );
     }
 
+    if ( astat == ARG_PARSE_CMD_PARSER_ONLY ) {
+        while ( this->readCmd() != CMD_EXIT );
+    }
+
     #ifdef DEV
     if ( astat == ARG_PARSE_FROM_FILE ) {
         this->readFile();
@@ -63,6 +67,7 @@ argStat cmdParser::parseArgs(int argc, char** argv) {
         return ARG_PARSE_ARG_MISSING;
     }
     if ( argc == 2 ) {
+        if ( argv[1][0] == '-' ) return ARG_PARSE_CMD_PARSER_ONLY;
         // check username and server address
         std::vector<std::string> tokens;
         UTIL::parseTokens( argv[1], tokens, '@');
@@ -424,13 +429,13 @@ void cmdParser::completePath(const std::string& prtPath) {
     // the matched item is a direcotry
     std::vector<std::pair<std::string, bool> > matched;
 
-    // don't show hidden files unless query string starts with '.'
-    bool ignoreHidden = prtPath.size() ? prtPath[0] != '.' : true;
-
     // make sure to read the correct dir
     std::string targetDir, prtFile;
     UTIL::splitPathFile(prtPath, targetDir, prtFile);
     UTIL::readDir(targetDir.c_str(), matched);
+
+    // don't show hidden files unless query string starts with '.'
+    bool ignoreHidden = prtFile.size() ? prtFile[0] != '.' : true;
 
     // check matched
     for (size_t i = 0; i < matched.size(); ++i) {
@@ -520,9 +525,12 @@ void cmdParser::showMatched(const std::vector<std::pair<std::string, bool> >& ma
         if ( !matched[i].second ) {
             cout << left << setw(printWidth) << matched[i].first;
         }
-        else {
+        else if ( errMgr.colorOutput() ) {
             cout << BOLD_RED;
             cout << matched[i].first << COLOR_RESET << left << setw(printWidth-(int)matched[i].first.size()) << '/';
+        }
+        else {
+            cout << matched[i].first << left << setw(printWidth-(int)matched[i].first.size()) << '/';
         }
         if ( ++count == nItms ) {
             count = 0;

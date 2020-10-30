@@ -56,22 +56,12 @@ int wLength(const char* str) {
     return (int)strlen(str);
 }
 
-size_t strNcmp(const std::string& s1, const std::string& s2, size_t n) {
-    size_t ret = 0;
-    for (size_t i = 0; i < n; ++i) {
-        ret += abs(int(s1[i]) - int(s2[i]));
-    }
-    return ret;
+int strNcmp(const std::string& s1, const std::string& s2, size_t n) {
+    return strncmp(s1.c_str(), s2.c_str(), n);
 }
 
-size_t strNcmp_soft(std::string s1, std::string s2, size_t n) {
-    size_t ret = 0;
-    for (auto& c : s1) c = tolower(c);
-    for (auto& c : s2) c = tolower(c);
-    for (size_t i = 0; i < n; ++i) {
-        ret += abs(int(s1[i]) - int(s2[i]));
-    }
-    return ret;
+int strNcmp_soft(const std::string& s1, const std::string& s2, size_t n) {
+    return strncasecmp(s1.c_str(), s2.c_str(), n);
 }
 
 static const char unitDict[] = {'B', 'K', 'M', 'G', 'T', 'P'};
