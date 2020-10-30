@@ -14,11 +14,15 @@ namespace sftp
 enum sftpStat
 {
     SFTP_OK = 0,
-    SFTP_INIT_FAILED = -1,
+    SFTP_INIT_FAILED = 1,
+    SFTP_AUTH_ERROR  = 2,
+    SFTP_AUTH_DENIED = 3,
+    SFTP_AUTH_ERROR_UNKNOWN = 4
 };
 
 class sftpSession
 {
+#define PSSWD_BUF_MAX 32
 public:
     sftpSession();
     sftpSession(const char* hostIP,

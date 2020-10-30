@@ -1,5 +1,6 @@
-#include "cmdCharDef.h"
+#include <termios.h>
 #include <iomanip>
+#include "cmdCharDef.h"
 
 // this is for the original terminal IO settings
 static struct termios stored_settings;

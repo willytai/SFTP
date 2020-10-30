@@ -1,7 +1,6 @@
 #ifndef __CMD_CHAR_DEF_H__
 #define __CMD_CHAR_DEF_H__
 
-#include <termios.h>
 #include <climits>
 #include "def.h"
 

@@ -1,9 +1,24 @@
 #include <string.h>
 #include <errno.h>
+#include <termios.h>
 #include "sftpSession.h"
 
 namespace sftp
 {
+
+static void set_psswd_termio() {
+    struct termios new_settings;
+    tcgetattr(0, &new_settings);
+    new_settings.c_lflag &= ~ECHO;
+    tcsetattr(0, TCSANOW, &new_settings);
+}
+
+static void reset_termio() {
+    struct termios new_settings;
+    tcgetattr(0, &new_settings);
+    new_settings.c_lflag &= ECHO;
+    tcsetattr(0, TCSANOW, &new_settings);
+}
 
 sftpSession::sftpSession() {
     _usr = _hostIP = _psswd = _port = NULL;
@@ -34,6 +49,7 @@ sftpStat sftpSession::start() {
     if ( (sfstat = this->verifyKnownHost()) != SFTP_OK ) return sfstat;
     if ( (sfstat = this->authenticate())    != SFTP_OK ) return sfstat;
     if ( (sfstat = this->initSFTP())        != SFTP_OK ) return sfstat;
+    return SFTP_OK;
 }
 
 
@@ -41,7 +57,7 @@ sftpStat sftpSession::start() {
 /*******************/
 /* private methods */
 /*******************/
-
+// TODO: error handling
 sftpStat sftpSession::initSSHSession() {
     _ssh_session = ssh_new();
     if ( _ssh_session == NULL ) {
@@ -97,7 +113,7 @@ sftpStat sftpSession::verifyKnownHost() {
 
         case SSH_KNOWN_HOSTS_CHANGED:
             fprintf(stderr, "Host key for server changed: it is now:\n");
-            ssh_print_hexa("Public key hash", hash, hlen);
+            ssh_print_hash(SSH_PUBLICKEY_HASH_SHA1, hash, hlen);
             fprintf(stderr, "For security reasons, connection will be stopped\n");
             ssh_clean_pubkey_hash(&hash);
             return SFTP_INIT_FAILED;
@@ -116,6 +132,9 @@ sftpStat sftpSession::verifyKnownHost() {
                     "automatically created.\n");
 
             /* Fall through the next behavior */
+            // -- this is to indicate that falling through is intentional
+            //    and mutes the compiler for warnings (c++11/14/17)
+            [[gnu::fallthrough]];
 
         case SSH_KNOWN_HOSTS_UNKNOWN:
             hexa = ssh_get_hexa(hash, hlen);
@@ -149,18 +168,46 @@ sftpStat sftpSession::verifyKnownHost() {
 }
 
 sftpStat sftpSession::authenticate() {
-    // TODO: this part should be interactive with the terminal
     if ( _psswd == NULL ) {
-        printf("need to set password\n");
-        exit(-1);
-    }
-    int rc = ssh_userauth_password(_ssh_session, NULL, _psswd);
-    if ( rc != SSH_OK ) {
-        fprintf(stderr, "cannot authenticate server\n");
-        return SFTP_INIT_FAILED;
+        _psswd = (char*)malloc(PSSWD_BUF_MAX*sizeof(char));
+        for (int i = 0; i < 3; ++i) {
+            printf("%s@%s's password: ", _usr, _hostIP);
+            set_psswd_termio();
+            scanf("%s", _psswd);
+            reset_termio();
+
+            int rc = ssh_userauth_password(_ssh_session, NULL, _psswd);
+
+            if ( rc == SSH_AUTH_SUCCESS ) {
+                // -- this is to clear the input buffer, preventing the
+                //    command parser to detect the newline character after
+                //    entering the password
+                while (getchar() != '\n');
+                return SFTP_OK;
+            }
+            else if ( rc == SSH_AUTH_DENIED ) {
+                printf("\nPermission denied");
+                if ( i < 2 ) {
+                    printf(", please try again.\n");
+                }
+                else {
+                    printf(".\n");
+                }
+            }
+            else if ( rc == SSH_AUTH_ERROR ) {
+                return SFTP_AUTH_ERROR;
+            }
+            else {
+                return SFTP_AUTH_ERROR_UNKNOWN;
+            }
+        }
+        return SFTP_AUTH_DENIED;
     }
     else {
-        printf("authentication complete\n");
+        int rc = ssh_userauth_password(_ssh_session, NULL, _psswd);
+        if ( rc != SSH_AUTH_SUCCESS ) {
+            printf("authentication failed\n");
+        }
         return SFTP_OK;
     }
 }
