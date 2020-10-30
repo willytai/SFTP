@@ -61,7 +61,7 @@ sftpStat sftpSession::start() {
 sftpStat sftpSession::initSSHSession() {
     _ssh_session = ssh_new();
     if ( _ssh_session == NULL ) {
-        return SFTP_INIT_FAILED;
+        return SFTP_SSH_INIT_FAILED;
     }
     else {
         printf("ssh session created\n");
@@ -78,7 +78,7 @@ sftpStat sftpSession::connectSSH() {
     int rc = ssh_connect(_ssh_session);
     if ( rc != SSH_OK ) {
         fprintf(stderr, "Error connecting to %s: %s\n", _hostIP, ssh_get_error(_ssh_session));
-        return SFTP_INIT_FAILED;
+        return SFTP_SSH_CONNECTION_DENIED;
     }
     else {
         printf("connection established\n");
@@ -96,12 +96,12 @@ sftpStat sftpSession::verifyKnownHost() {
 
     if ( ssh_get_server_publickey(_ssh_session, &srv_pubkey) < 0 ) {
         fprintf(stderr, "unable to get public key from server\n");
-        return SFTP_INIT_FAILED;
+        return SFTP_VERIFY_PUBLIC_KEY_ERROR;
     }
     if ( ssh_get_publickey_hash(srv_pubkey, SSH_PUBLICKEY_HASH_SHA1, &hash, &hlen) < 0 ) {
         fprintf(stderr, "unable to get key hash from server\n");
         ssh_key_free(srv_pubkey);
-        return SFTP_INIT_FAILED;
+        return SFTP_VERIFY_PUBLIC_KEYHASH_ERROR;
     }
     ssh_key_free(srv_pubkey);
 
@@ -116,7 +116,7 @@ sftpStat sftpSession::verifyKnownHost() {
             ssh_print_hash(SSH_PUBLICKEY_HASH_SHA1, hash, hlen);
             fprintf(stderr, "For security reasons, connection will be stopped\n");
             ssh_clean_pubkey_hash(&hash);
-            return SFTP_INIT_FAILED;
+            return SFTP_VERIFY_HOSTS_CHANGED;
 
         case SSH_KNOWN_HOSTS_OTHER:
             fprintf(stderr, "The host key for this server was not found but an other"
@@ -124,7 +124,7 @@ sftpStat sftpSession::verifyKnownHost() {
             fprintf(stderr, "An attacker might change the default server key to"
                     "confuse your client into thinking the key does not exist\n");
             ssh_clean_pubkey_hash(&hash);
-            return SFTP_INIT_FAILED;
+            return SFTP_VERIFY_HOSTS_OTHER;
 
         case SSH_KNOWN_HOSTS_NOT_FOUND:
             fprintf(stderr, "Could not find known host file.\n");
@@ -144,23 +144,23 @@ sftpStat sftpSession::verifyKnownHost() {
             ssh_clean_pubkey_hash(&hash);
             if ( fgets(buf, sizeof(buf), stdin) == NULL ) {
                 fprintf(stderr, "stdin error.\n");
-                return SFTP_INIT_FAILED;
+                return SFTP_VERIFY_UNDEF_ERROR;
             }
             if ( strncasecmp(buf, "yes", 3) != 0 ) {
                 fprintf(stderr, "Connection denied by user.\n");
-                return SFTP_INIT_FAILED;
+                return SFTP_VERIFY_HOSTS_CONNECTION_DENIED;
             }
  
             if ( ssh_session_update_known_hosts(_ssh_session) < 0 ) {
                 fprintf(stderr, "Error %s\n", strerror(errno));
-                return SFTP_INIT_FAILED;
+                return SFTP_VERIFY_UNDEF_ERROR;
             }
             break;
 
         case SSH_KNOWN_HOSTS_ERROR:
             fprintf(stderr, "Error %s", ssh_get_error(_ssh_session));
             ssh_clean_pubkey_hash(&hash);
-            return SFTP_INIT_FAILED;
+            return SFTP_VERIFY_UNDEF_ERROR;
 
     }
     ssh_clean_pubkey_hash(&hash);
@@ -198,7 +198,7 @@ sftpStat sftpSession::authenticate() {
                 return SFTP_AUTH_ERROR;
             }
             else {
-                return SFTP_AUTH_ERROR_UNKNOWN;
+                return SFTP_AUTH_UNDEF_ERROR;
             }
         }
         return SFTP_AUTH_DENIED;
@@ -216,12 +216,12 @@ sftpStat sftpSession::initSFTP() {
     _sftp_session = sftp_new(_ssh_session);
     if ( _sftp_session == NULL ) {
         fprintf(stderr, "Could not allocate a sftp session: %s\n", ssh_get_error(_sftp_session));
-        return SFTP_INIT_FAILED;
+        return SFTP_SESS_ALLOCATE_FAILED;
     }
     if ( sftp_init(_sftp_session) != SSH_OK ) {
         fprintf(stderr, "Could not initialize a sftp session: %s\n", ssh_get_error(_sftp_session));
         sftp_free(_sftp_session);
-        return SFTP_INIT_FAILED;
+        return SFTP_SESS_INIT_FAILED;
     }
     printf("sftp session established\n");
     sftp_dir dir;
