@@ -1,7 +1,10 @@
 #include <string.h>
 #include <errno.h>
 #include <termios.h>
+#include "cmdParser.h"
 #include "sftpSession.h"
+
+extern errorMgr errMgr;
 
 namespace sftp
 {
@@ -57,10 +60,10 @@ sftpStat sftpSession::start() {
 /*******************/
 /* private methods */
 /*******************/
-// TODO: error handling
 sftpStat sftpSession::initSSHSession() {
     _ssh_session = ssh_new();
     if ( _ssh_session == NULL ) {
+        errMgr.setSftpErr( ssh_get_error(_ssh_session) );
         return SFTP_SSH_INIT_FAILED;
     }
     else {
@@ -77,7 +80,7 @@ sftpStat sftpSession::initSSHSession() {
 sftpStat sftpSession::connectSSH() {
     int rc = ssh_connect(_ssh_session);
     if ( rc != SSH_OK ) {
-        fprintf(stderr, "Error connecting to %s: %s\n", _hostIP, ssh_get_error(_ssh_session));
+        errMgr.setSftpErr( _hostIP, ssh_get_error(_ssh_session) );
         return SFTP_SSH_CONNECTION_DENIED;
     }
     else {
@@ -95,11 +98,9 @@ sftpStat sftpSession::verifyKnownHost() {
     char*               hexa;
 
     if ( ssh_get_server_publickey(_ssh_session, &srv_pubkey) < 0 ) {
-        fprintf(stderr, "unable to get public key from server\n");
         return SFTP_VERIFY_PUBLIC_KEY_ERROR;
     }
     if ( ssh_get_publickey_hash(srv_pubkey, SSH_PUBLICKEY_HASH_SHA1, &hash, &hlen) < 0 ) {
-        fprintf(stderr, "unable to get key hash from server\n");
         ssh_key_free(srv_pubkey);
         return SFTP_VERIFY_PUBLIC_KEYHASH_ERROR;
     }
@@ -118,20 +119,11 @@ sftpStat sftpSession::verifyKnownHost() {
             ssh_clean_pubkey_hash(&hash);
             return SFTP_VERIFY_HOSTS_CHANGED;
 
-        case SSH_KNOWN_HOSTS_OTHER:
-            fprintf(stderr, "The host key for this server was not found but an other"
-                    "type of key exists.\n");
-            fprintf(stderr, "An attacker might change the default server key to"
-                    "confuse your client into thinking the key does not exist\n");
-            ssh_clean_pubkey_hash(&hash);
-            return SFTP_VERIFY_HOSTS_OTHER;
-
         case SSH_KNOWN_HOSTS_NOT_FOUND:
             fprintf(stderr, "Could not find known host file.\n");
             fprintf(stderr, "If you accept the host key here, the file will be"
                     "automatically created.\n");
 
-            /* Fall through the next behavior */
             // -- this is to indicate that falling through is intentional
             //    and mutes the compiler for warnings (c++11/14/17)
             [[gnu::fallthrough]];
@@ -143,24 +135,26 @@ sftpStat sftpSession::verifyKnownHost() {
             ssh_string_free_char(hexa);
             ssh_clean_pubkey_hash(&hash);
             if ( fgets(buf, sizeof(buf), stdin) == NULL ) {
-                fprintf(stderr, "stdin error.\n");
-                return SFTP_VERIFY_UNDEF_ERROR;
+                return SFTP_VERIFY_STDIN_ERROR;
             }
             if ( strncasecmp(buf, "yes", 3) != 0 ) {
-                fprintf(stderr, "Connection denied by user.\n");
-                return SFTP_VERIFY_HOSTS_CONNECTION_DENIED;
+                return SFTP_VERIFY_HOST_CONNECTION_DENIED;
             }
  
             if ( ssh_session_update_known_hosts(_ssh_session) < 0 ) {
-                fprintf(stderr, "Error %s\n", strerror(errno));
-                return SFTP_VERIFY_UNDEF_ERROR;
+                errMgr.setSftpErr( strerror(errno) );
+                return SFTP_VERIFY_UPDATE_KNOWN_HOST_ERROR;
             }
             break;
 
-        case SSH_KNOWN_HOSTS_ERROR:
-            fprintf(stderr, "Error %s", ssh_get_error(_ssh_session));
+        case SSH_KNOWN_HOSTS_OTHER:
             ssh_clean_pubkey_hash(&hash);
-            return SFTP_VERIFY_UNDEF_ERROR;
+            return SFTP_VERIFY_HOSTS_OTHER;
+
+        case SSH_KNOWN_HOSTS_ERROR:
+            errMgr.setSftpErr( ssh_get_error(_ssh_session) );
+            ssh_clean_pubkey_hash(&hash);
+            return SFTP_VERIFY_KNOWN_HOST_ERROR;
 
     }
     ssh_clean_pubkey_hash(&hash);
@@ -215,11 +209,11 @@ sftpStat sftpSession::authenticate() {
 sftpStat sftpSession::initSFTP() {
     _sftp_session = sftp_new(_ssh_session);
     if ( _sftp_session == NULL ) {
-        fprintf(stderr, "Could not allocate a sftp session: %s\n", ssh_get_error(_sftp_session));
+        errMgr.setSftpErr( ssh_get_error(_sftp_session) );
         return SFTP_SESS_ALLOCATE_FAILED;
     }
     if ( sftp_init(_sftp_session) != SSH_OK ) {
-        fprintf(stderr, "Could not initialize a sftp session: %s\n", ssh_get_error(_sftp_session));
+        errMgr.setSftpErr( ssh_get_error(_sftp_session) );
         sftp_free(_sftp_session);
         return SFTP_SESS_INIT_FAILED;
     }

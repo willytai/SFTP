@@ -122,17 +122,40 @@ public:
     void handleNonExistDir(const std::string&, const std::vector<std::string>&, bool) const;
 
     void setColorfulOutput() { _colorful = true; }
+
+    // for command parser
     void setErrCmd        (const std::string&)  const;
     void setErrOpt        (const std::string&)  const;
     void setErrArg        (const std::string&)  const;
     void setErrOpt        (const char&)         const;
     void setErrHndlr      (const cmdExec*)      const;
 
+    // for sftp session
+    void setSftpErr       (const char*, const char*) const;
+    void setSftpErr       (const char*) const;
+
 private:
+
+    // for command parser
     void cmdError();
     void cmdOptIllegal();
     void cmdExecError();
     void cmdArgTooMany();
+
+    // for sftp session
+    void sftpSshConnectError() const;
+    void sftpSshAllocError() const;
+    void sftpSessAllocError() const;
+    void sftpSessInitError() const;
+    void sftpAuthError() const;
+    void sftpAuthUndefError() const;
+    void sftpVrfyPubKeyError() const;
+    void sftpVrfyPubHashError() const;
+    void sftpVrfyHostOtherError() const;
+    void sftpVrfyStdinError() const;
+    void sftpVrfyHostConnectDefined() const;
+    void sftpVrfyUpdateError() const;
+    void sftpVrfyKnownHostError() const;
 
 private:
     // colorful print or not
