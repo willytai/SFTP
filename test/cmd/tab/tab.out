@@ -4,7 +4,7 @@ sftp> lcd tab/tab.
 tab.in   tab.out  
 sftp> lcd tab/tab.
 sftp> l
-lls      ls       lcd      
+lcd      lls      ls       
 sftp> lcd ta  tab/.
 ./       ../      
 sftp> lcd tab/..  ../t tab

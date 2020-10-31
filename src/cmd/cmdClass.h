@@ -9,7 +9,7 @@ typedef std::vector<std::string> vecstr;
 /*************/
 /* for local */
 /*************/
-cmdClass(llsCmd);
+cmdClassLocal(llsCmd);
 
 // the cd class is slightly different from the others
 class lcdCmd : public cmdExec
@@ -30,26 +30,21 @@ private:
 /**************/
 /* for server */
 /**************/
-cmdClass(cdCmd);
-cmdClass(lsCmd);
-cmdClass(mkdirCmd);
-cmdClass(rmCmd);
-cmdClass(chmodCmd);
+cmdClassServer(cdCmd);
+cmdClassServer(lsCmd);
+cmdClassServer(mkdirCmd);
+cmdClassServer(rmCmd);
+cmdClassServer(chmodCmd);
+cmdClassServer(putCmd);
+cmdClassServer(getCmd);
 
 
 /***********************/
 /* for program control */
 /***********************/
-cmdClass(quitCmd);
-cmdClass(clearCmd);
-
-
-/************/
-/* for sftp */
-/************/
-cmdClass(putCmd);
-cmdClass(getCmd);
-cmdClass(helpCmd);
+cmdClassLocal(quitCmd);
+cmdClassLocal(clearCmd);
+cmdClassLocal(helpCmd);
 
 
 #endif /* __CMD_CLASS_H__ */

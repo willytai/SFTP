@@ -89,10 +89,10 @@ protected:
 };
 
 
-/*********/
-/* macro */
-/*********/
-#define cmdClass(T)                            \
+/*****************************/
+/* local command class macro */
+/*****************************/
+#define cmdClassLocal(T)                       \
 class T : public cmdExec                       \
 {                                              \
 public:                                        \
@@ -102,6 +102,23 @@ public:                                        \
     cmdStat execute(const std::string&) const; \
     void    usage()   const;                   \
     void    help()    const;                   \
+}
+
+/******************************/
+/* server command class macro */
+/******************************/
+#define cmdClassServer(T)                      \
+class T : public cmdExec                       \
+{                                              \
+public:                                        \
+    T(sftp::sftpSession** s) { _sftp_sess_ptr = s; }\
+    ~T() {}                                    \
+                                               \
+    cmdStat execute(const std::string&) const; \
+    void    usage()   const;                   \
+    void    help()    const;                   \
+private:                                       \
+    sftp::sftpSession**  _sftp_sess_ptr;       \
 }
 
 /*****************/

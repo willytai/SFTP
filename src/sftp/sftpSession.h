@@ -6,6 +6,7 @@
 #include <string.h>
 #include <libssh/libssh.h>
 #include <libssh/sftp.h>
+#include <string>
 #include "def.h"
 
 namespace sftp
@@ -28,12 +29,15 @@ enum sftpStat
     SFTP_VERIFY_STDIN_ERROR = 12,
     SFTP_VERIFY_HOST_CONNECTION_DENIED = 13,
     SFTP_VERIFY_UPDATE_KNOWN_HOST_ERROR = 14,
-    SFTP_VERIFY_KNOWN_HOST_ERROR = 15
+    SFTP_VERIFY_KNOWN_HOST_ERROR = 15,
+
+    SFTP_CD_ERROR = 16
 };
 
 class sftpSession
 {
 #define PSSWD_BUF_MAX 32
+#define PATH_BUF_MAX  256
 public:
     sftpSession();
     sftpSession(const char* hostIP,
@@ -51,14 +55,19 @@ public:
 
     sftpStat start();
 
+    const char* pwd() const { return _pwd.c_str(); }
+    sftpStat    cd(std::string&);
+
 private:
     sftpStat initSSHSession();
     sftpStat connectSSH();
     sftpStat verifyKnownHost();
     sftpStat authenticate();
-
     sftpStat initSFTP();
 
+    void seterrno(int) const;
+
+private:
     ssh_session       _ssh_session;
     sftp_session      _sftp_session;
     char*             _hostIP;
@@ -66,6 +75,12 @@ private:
     char*             _psswd;
     char*             _port;
     int               _verbosity;
+
+    // need to keep track of the current working directory
+    // this is always a relative path to the $HOME directory on the remote server
+    std::string       _pwd;
+    std::string       _home;
+    sftp_dir          _dir;
 };
 
 }

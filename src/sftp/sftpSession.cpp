@@ -3,8 +3,11 @@
 #include <termios.h>
 #include "cmdParser.h"
 #include "sftpSession.h"
+#include "util.h"
 
 extern errorMgr errMgr;
+
+static char fullpath[PATH_BUF_MAX];
 
 namespace sftp
 {
@@ -25,6 +28,7 @@ static void reset_termio() {
 
 sftpSession::sftpSession() {
     _usr = _hostIP = _psswd = _port = NULL;
+    _pwd.clear();
 }
 
 sftpSession::sftpSession(const char* hostIP, const char* user, const char* psswd, const char* port, int v) {
@@ -34,11 +38,13 @@ sftpSession::sftpSession(const char* hostIP, const char* user, const char* psswd
     this->setPort   (port,   strlen(port)+1 );
     this->setVerbose(v);
     // this->setVerbose(SSH_LOG_PROTOCOL);
+    _pwd.clear();
 }
 
 sftpSession::~sftpSession() {
-    ssh_disconnect(_ssh_session);
-    ssh_free(_ssh_session);
+    if ( _sftp_session != NULL ) sftp_free(_sftp_session);
+    if ( _ssh_session  != NULL ) ssh_disconnect(_ssh_session);
+    if ( _ssh_session  != NULL ) ssh_free(_ssh_session);
     if ( _hostIP != NULL ) free(_hostIP);
     if ( _usr    != NULL ) free(_usr);
     if ( _psswd  != NULL ) free(_psswd);
@@ -72,7 +78,6 @@ sftpStat sftpSession::initSSHSession() {
     ssh_options_set(_ssh_session, SSH_OPTIONS_HOST, _hostIP);
     ssh_options_set(_ssh_session, SSH_OPTIONS_LOG_VERBOSITY, &_verbosity);
     ssh_options_set(_ssh_session, SSH_OPTIONS_USER, _usr);
-    // ssh_options_set(_ssh_session, SSH_OPTIONS_SSH_DIR, ".\\");
     if (_port != NULL) ssh_options_set(_ssh_session, SSH_OPTIONS_PORT, _port);
     return SFTP_OK;
 }
@@ -218,22 +223,55 @@ sftpStat sftpSession::initSFTP() {
         return SFTP_SESS_INIT_FAILED;
     }
     printf("sftp session established\n");
-    sftp_dir dir;
-    sftp_attributes file;
-    dir = sftp_opendir(_sftp_session, "./Desktop");
-    while ( (file = sftp_readdir(_sftp_session, dir)) ) {
-        fprintf(stderr, "%30s(%.8o) : %s(%.5d) %s(%.5d) : %.10lu bytes\n",
-                file->name,
-                file->permissions,
-                file->owner,
-                file->uid,
-                file->group,
-                file->gid,
-                (size_t)file->size);
-        sftp_attributes_free(file);
-    }
-    sftp_free(_sftp_session);
+
+    // store the absolute path of $HOME
+    char* chome = sftp_canonicalize_path(_sftp_session, "./");
+    _home = std::string(chome);
+    ssh_string_free_char(chome);
+
     return SFTP_OK;
+}
+
+// sftp does not have the conecpt of "pwd"
+// the working directory is will be stored locally
+sftpStat sftpSession::cd(std::string& path) {
+    if ( path.size() == 0 ) { // back to $HOME
+        _pwd = _home;
+    }
+
+    // concatenate path
+    snprintf(fullpath, PATH_BUF_MAX, "%s/%s", _pwd.c_str(), path.c_str());
+
+    // if path doesn't exist, set errno properly
+    if ( (_dir = sftp_opendir(_sftp_session, fullpath)) == NULL ) {
+        this->seterrno( sftp_get_error(_sftp_session) );
+        return SFTP_CD_ERROR;
+    }
+    else {
+        sftp_closedir( _dir );
+    }
+
+    // make sure the stored path is in canonical form
+    // this function gets rid of leading "./" or trailing "/", very powerful
+    char* cpath = sftp_canonicalize_path(_sftp_session, fullpath);
+    size_t i = 0;
+    while ( cpath[i] != '\0' ) {
+        if ( _pwd.size() < i+1 ) _pwd.resize(i+1);
+        _pwd[i] = cpath[i];
+        ++i;
+    }
+    _pwd.resize(i);
+    ssh_string_free_char(cpath);
+
+    return SFTP_OK;
+}
+
+// TODO: refer to errno.h, sftp.h and set errno properly
+void sftpSession::seterrno(int code) const {
+    switch (code) {
+        case SSH_FX_NO_SUCH_FILE: errno = ENOENT; return;
+        default: return;
+    }
 }
 
 }
