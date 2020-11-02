@@ -117,6 +117,44 @@ TEST_CASE( "-- strNcmp --", "[UTIL]" )
         REQUIRE( UTIL::strNcmp("asdfwhathefuck", "asdfshit", 4) == 0 );
         REQUIRE( UTIL::strNcmp("asdfwhathefuck", "asdfshit", 5) != 0 );
     }
+    SECTION("not-long-enough strings")
+    {
+        REQUIRE( UTIL::strNcmp("fuck", "fu", 4) != 0 );
+        REQUIRE( UTIL::strNcmp("fuck", "fu", 3) != 0 );
+        REQUIRE( UTIL::strNcmp("fuck", "fu", 2) == 0 );
+    }
+}
+TEST_CASE( "-- substr --", "[UTIL]" )
+{
+    SECTION("normal substrings")
+    {
+        char sub[64];
+        UTIL::substr("this is base string", sub, 0, 4);
+        UNSCOPED_INFO( "\033[37mthe substring is: \'" << sub << "\'");
+        UNSCOPED_INFO( "should have been: " << "\'this\'" << "\033[32m");
+        REQUIRE( UTIL::strNcmp(sub, "this", 4)  == 0 );
+        UTIL::substr("this is base string", sub, 5, 2);
+        UNSCOPED_INFO( "\033[37mthe substring is: \'" << sub << "\'");
+        UNSCOPED_INFO( "should have been: " << "\'is\'" << "\033[32m");
+        REQUIRE( UTIL::strNcmp(sub, "is", 2)  == 0 );
+        UTIL::substr("this is base string", sub, 8);
+        UNSCOPED_INFO( "\033[37mthe substring is: \'" << sub << "\'");
+        UNSCOPED_INFO( "should have been: " << "\'base string\'" << "\033[32m");
+        REQUIRE( UTIL::strNcmp(sub, "base string", 11)  == 0 );
+    }
+    SECTION("offset in substrings")
+    {
+        char sub[64];
+        sub[0] = '~';
+        UTIL::substr("this is base string", sub, 5, 0xffffffffffffffff, 1);
+        UNSCOPED_INFO( "\033[37mthe substring is: \'" << sub << "\'");
+        UNSCOPED_INFO( "should have been: " << "\'~is base string\'" << "\033[32m");
+        REQUIRE( UTIL::strNcmp(sub, "~is base string", 15)  == 0 );
+        UTIL::substr("this is base string", sub, 8, 4, 2);
+        UNSCOPED_INFO( "\033[37mthe substring is: \'" << sub << "\'");
+        UNSCOPED_INFO( "should have been: " << "\'~ibase\'" << "\033[32m");
+        REQUIRE( UTIL::strNcmp(sub, "~ibase", 6)  == 0 );
+    }
 }
 TEST_CASE( "-- wLength --", "[UTIL]" )
 {

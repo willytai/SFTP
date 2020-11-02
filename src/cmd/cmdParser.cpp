@@ -8,6 +8,8 @@
 
 extern errorMgr errMgr;
 
+static char cwdBuf[CWD_BUF_MAX];
+
 cmdParser::cmdParser(const char* prompt) {
     _prompt = prompt;
     _bufEnd = _bufPtr = _bufTmpPtr = NULL;
@@ -15,6 +17,8 @@ cmdParser::cmdParser(const char* prompt) {
     _history.clear();
     _history.reserve(HISTORY_SIZE);
     _hisID = 0;
+    UTIL::getHomeDir( &_home );
+    _hlen = strlen( _home );
     this->regCmd();
 }
 
@@ -620,8 +624,48 @@ void cmdParser::resetBuf() {
     this->printPrompt();
 }
 
+// TODO: print wd for server
+//       print at most CWD_DEPTH_MAX deep
+static char cwdBufabbrv[CWD_BUF_MAX];
 void cmdParser::printPrompt() {
-    cout << _prompt << "> ";
+
+    // this part is for testing
+    if ( !errMgr.colorOutput() ) {
+        cout << _prompt << "> ";
+        return;
+    }
+
+    cout << BOLD_YELLOW << '[' << _prompt << ']';
+    cout << BOLD_CYAN   << " local";
+    cout << BOLD_RED    << " ➜ ";
+
+    if ( getcwd(cwdBuf, CWD_BUF_MAX) == NULL ) {
+        // dynamic memory allocation is not implemented
+        // if this happens, program aborts
+        exit(-1);
+    }
+
+    // replace $HOME with "~/"
+    if ( UTIL::strNcmp(cwdBuf, _home, _hlen) == 0 ) {
+        cwdBufabbrv[0] = '~';
+        UTIL::substr( cwdBuf, cwdBufabbrv, _hlen, 0xffffffffffffffff, 1 );
+        std::swap( cwdBuf, cwdBufabbrv );
+    }
+
+    // find the last CWD_DEPTH_MAX directories
+    int pos = (int)strlen(cwdBuf)-1;
+    int count = 0;
+    for (; pos > 0; --pos) {
+        if ( cwdBuf[pos] == '/' ) ++count;
+        if ( count == CWD_DEPTH_MAX ) {
+            ++pos; // do not print the thrid '/'
+            break;
+        }
+    }
+    UTIL::substr(cwdBuf, cwdBufabbrv, pos, strlen(cwdBuf)-pos+1);
+
+    cout << BOLD_GREEN  << cwdBufabbrv;
+    cout << COLOR_RESET << " » ";
 }
 
 void cmdParser::makeCopy() {

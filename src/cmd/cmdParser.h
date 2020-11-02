@@ -107,18 +107,18 @@ public:                                        \
 /******************************/
 /* server command class macro */
 /******************************/
-#define cmdClassServer(T)                      \
-class T : public cmdExec                       \
-{                                              \
-public:                                        \
-    T(sftp::sftpSession** s) { _sftp_sess_ptr = s; }\
-    ~T() {}                                    \
-                                               \
-    cmdStat execute(const std::string&) const; \
-    void    usage()   const;                   \
-    void    help()    const;                   \
-private:                                       \
-    sftp::sftpSession**  _sftp_sess_ptr;       \
+#define cmdClassServer(T)                            \
+class T : public cmdExec                             \
+{                                                    \
+public:                                              \
+    T(sftp::sftpSession** s) { _sftp_sess_ptr = s; } \
+    ~T() {}                                          \
+                                                     \
+    cmdStat execute(const std::string&) const;       \
+    void    usage()   const;                         \
+    void    help()    const;                         \
+private:                                             \
+    sftp::sftpSession**  _sftp_sess_ptr;             \
 }
 
 /*****************/
@@ -190,6 +190,8 @@ class cmdParser
 #define TAB_STOP 4
 #define PG_OFFSET 10
 #define MATCH_KEY_OUTPUT_MIN_WIDTH 8
+#define CWD_BUF_MAX 256
+#define CWD_DEPTH_MAX 3
 
 typedef std::unordered_map<std::string, cmdExec*> cmdMAP;
 typedef std::pair<std::string, cmdExec*>          cmdKeyHandlerPair;
@@ -268,6 +270,11 @@ private:
 
     // sftp session placeholder
     sftp::sftpSession* _sftp_sess;
+
+    // the home directory
+    // store the length to avoid recalculating it every time
+    const char* _home;
+    size_t      _hlen;
 
 #ifdef DEV
     std::string _filename;

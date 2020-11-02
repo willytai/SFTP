@@ -56,8 +56,31 @@ int wLength(const char* str) {
     return (int)strlen(str);
 }
 
+// if 'n' not specified, substr to the end of source
+// if 'substart' is not specified, start 'sub' from 0
+// make sure sub does not overflow
+void substr(const char* source, char* sub, size_t pos, size_t n, size_t substart) {
+    size_t i = 0;
+    for (; i < n; ++i) {
+        sub[substart+i] = source[pos+i];
+        if ( source[pos+i] == '\0' ) break;
+    }
+    if ( source[pos+i-1] != '\0' ) sub[substart+i] = '\0';
+}
+
+// allows strings that are shorter than n (will simply be detected and returns -1)
+int strNcmp(const char* s1, const char* s2, size_t n) {
+    size_t i = 0;
+    for (; i < n; ++i) {
+        if ( s1[i] == '\0' || s2[i] == '\0' ) break;
+        if ( s1[i] != s2[i] ) return -1;
+    }
+    if ( i < n ) return -1;
+    else         return 0;
+}
+
 int strNcmp(const std::string& s1, const std::string& s2, size_t n) {
-    return strncmp(s1.c_str(), s2.c_str(), n);
+    return strNcmp(s1.c_str(), s2.c_str(), n);
 }
 
 int strNcmp_soft(const std::string& s1, const std::string& s2, size_t n) {
