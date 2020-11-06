@@ -214,19 +214,19 @@ sftpStat sftpSession::authenticate() {
 sftpStat sftpSession::initSFTP() {
     _sftp_session = sftp_new(_ssh_session);
     if ( _sftp_session == NULL ) {
-        errMgr.setSftpErr( ssh_get_error(_sftp_session) );
+        errMgr.setSftpErr( ssh_get_error(_ssh_session) );
         return SFTP_SESS_ALLOCATE_FAILED;
     }
     if ( sftp_init(_sftp_session) != SSH_OK ) {
-        errMgr.setSftpErr( ssh_get_error(_sftp_session) );
+        errMgr.setSftpErr( ssh_get_error(_ssh_session) );
         sftp_free(_sftp_session);
         return SFTP_SESS_INIT_FAILED;
     }
     printf("sftp session established\n");
 
-    // store the absolute path of $HOME
+    // store the absolute path of $HOME and set _pwd to _home;
     char* chome = sftp_canonicalize_path(_sftp_session, "./");
-    _home = std::string(chome);
+    _pwd = _home = std::string(chome);
     ssh_string_free_char(chome);
 
     return SFTP_OK;
@@ -266,11 +266,86 @@ sftpStat sftpSession::cd(std::string& path) {
     return SFTP_OK;
 }
 
-// TODO: refer to errno.h, sftp.h and set errno properly
+/*
+   stuct sftp_attributes_struct {
+    char *name;
+    char *longname; // ls -l output on openssh, not reliable else
+    uint32_t flags;
+    uint8_t type;   // doesn't know what in the fuck this is
+    uint64_t size;
+    uint32_t uid;
+    uint32_t gid;
+    char *owner; // set if openssh and version 4
+    char *group; // set if openssh and version 4
+    uint32_t permissions; // octal based
+    uint64_t atime64;
+    uint32_t atime;
+    uint32_t atime_nseconds;
+    uint64_t createtime;
+    uint32_t createtime_nseconds;
+    uint64_t mtime64;
+    uint32_t mtime;
+    uint32_t mtime_nseconds;
+    ssh_string acl;
+    uint32_t extended_count;
+    ssh_string extended_type;
+    ssh_string extended_data;
+ }*/
+sftpStat sftpSession::readDir(const std::string& dir, std::vector<std::pair<std::string, bool> >& container) const {
+    std::string fulldir = _pwd+"/"+dir;
+    sftp_dir curdir;
+    if ( ( curdir = sftp_opendir( _sftp_session, fulldir.c_str() ) ) == NULL ) {
+        errMgr.setSftpErr( ssh_get_error(_ssh_session) );
+        return SFTP_READDIR_ERROR;
+    }
+
+    sftp_attributes curattr;
+    while ( (curattr = sftp_readdir( _sftp_session, curdir )) != NULL ) {
+        container.emplace_back( std::string(curattr->name), curattr->longname[0]=='d' );
+        sftp_attributes_free( curattr );
+    }
+
+    // error handling
+    if ( curdir->eof != 1) {
+        errMgr.setSftpErr( ssh_get_error(_ssh_session) );
+        return SFTP_READDIR_ERROR;
+    }
+    if ( sftp_closedir( curdir ) ) {
+        errMgr.setSftpErr( ssh_get_error(_ssh_session) );
+        return SFTP_READDIR_ERROR;
+    }
+
+    return SFTP_OK;
+}
+
 void sftpSession::seterrno(int code) const {
     switch (code) {
-        case SSH_FX_NO_SUCH_FILE: errno = ENOENT; return;
+        case SSH_FX_PERMISSION_DENIED:   errno = EACCES; return;
+        case SSH_FX_NO_SUCH_FILE:        errno = ENOENT; return;
+        case SSH_FX_NO_SUCH_PATH:        errno = ENOENT; return;
+        case SSH_FX_NO_MEDIA:            errno = ENODEV; return;
+        case SSH_FX_WRITE_PROTECT:       errno = EROFS; return;
+        case SSH_FX_FILE_ALREADY_EXISTS: errno = EEXIST; return;
+        case SSH_FX_OP_UNSUPPORTED:      errno = EOPNOTSUPP; return;
+        case SSH_FX_CONNECTION_LOST:     errno = ETIMEDOUT; return;
+        case SSH_FX_NO_CONNECTION:       errno = ENOTCONN; return;
+        case SSH_FX_INVALID_HANDLE:      errno = EBADF; return;
+        case SSH_FX_EOF:                 errno = EBADF; return;
+        case SSH_FX_BAD_MESSAGE:         errno = EBADMSG; return;
+        case SSH_FX_FAILURE:             errno = EBADRPC; return;
         default: return;
+    }
+}
+
+static char cwdBuf[CWD_BUF_MAX];
+const char* sftpSession::pwd() const {
+    if ( UTIL::strNcmp(_pwd, _home, _home.length()) == 0 ) {
+        cwdBuf[0] = '~';
+        UTIL::substr( _pwd.c_str(), cwdBuf, _home.length(), 0xffffffffffffffff, 1 );
+        return cwdBuf;
+    }
+    else {
+        return _pwd.c_str();
     }
 }
 

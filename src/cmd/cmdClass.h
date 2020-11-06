@@ -43,8 +43,11 @@ cmdClassServer(getCmd);
 /* for program control */
 /***********************/
 cmdClassLocal(quitCmd);
+cmdClassLocal(exitCmd);
 cmdClassLocal(clearCmd);
 cmdClassLocal(helpCmd);
+cmdClassLocal(remoteCmd);
+cmdClassLocal(localCmd);
 
 
 #endif /* __CMD_CLASS_H__ */

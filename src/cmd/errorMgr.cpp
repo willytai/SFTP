@@ -12,23 +12,27 @@ static const cmdExec* ErrorHandler;
 static const char* ErrorHostIP;
 static const char* ErrorSftpMsg;
 
-void errorMgr::handle(const cmdStat& errCode) {
+bool errorMgr::handle(const cmdStat& errCode) {
     switch (errCode) {
         case CMD_ERROR:        this->cmdError();      break;
         case CMD_OPT_ILLEGAL:  this->cmdOptIllegal(); break;
         case CMD_EXEC_ERROR:   this->cmdExecError();  break;
         case CMD_ARG_TOO_MANY: this->cmdArgTooMany(); break;
-        default: return;
+        default: return true;
     }
     ErrorOPT.clear();
+    return false;
 }
 
 // TODO
-void errorMgr::handle(const argStat& errCode) {
-
+bool errorMgr::handle(const argStat& errCode) {
+    switch (errCode) {
+        default: return true;
+    }
+    return false;
 }
 
-void errorMgr::handle(const sftp::sftpStat& errCode) {
+bool errorMgr::handle(const sftp::sftpStat& errCode) {
     switch (errCode) {
         case sftp::SFTP_SSH_CONNECTION_DENIED:          this->sftpSshConnectError();        break;
         case sftp::SFTP_SSH_INIT_FAILED:                this->sftpSshAllocError();          break;
@@ -43,8 +47,10 @@ void errorMgr::handle(const sftp::sftpStat& errCode) {
         case sftp::SFTP_VERIFY_HOST_CONNECTION_DENIED:  this->sftpVrfyHostConnectDefined(); break;
         case sftp::SFTP_VERIFY_UPDATE_KNOWN_HOST_ERROR: this->sftpVrfyUpdateError();        break;
         case sftp::SFTP_VERIFY_KNOWN_HOST_ERROR:        this->sftpVrfyKnownHostError();     break;
-        default: return;
+        case sftp::SFTP_READDIR_ERROR:                  this->sftpReaddirError();           break;
+        default: return true;
     }
+    return false;
 }
 
 /**********************
@@ -196,5 +202,11 @@ void errorMgr::sftpVrfyUpdateError() const {
 void errorMgr::sftpVrfyKnownHostError() const {
     if ( _colorful ) cerr << BOLD_RED;
     cerr << "Known Host Error: " << ErrorSftpMsg << endl;
+    if ( _colorful ) cerr << COLOR_RESET;
+}
+
+void errorMgr::sftpReaddirError() const {
+    if ( _colorful ) cerr << BOLD_RED;
+    cerr << "SFTP Read Directory Error: " << ErrorSftpMsg << endl;
     if ( _colorful ) cerr << COLOR_RESET;
 }

@@ -3,6 +3,7 @@
 #include "util.h"
 #include "dirIO.h"
 #include <cassert>
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -11,12 +12,13 @@ extern errorMgr errMgr;
 static char cwdBuf[CWD_BUF_MAX];
 
 cmdParser::cmdParser(const char* prompt) {
-    _prompt = prompt;
-    _bufEnd = _bufPtr = _bufTmpPtr = NULL;
+    _prompt    = prompt;
+    _bufEnd    = _bufPtr = _bufTmpPtr = NULL;
+    _hisID     = 0;
+    _scope     = REMOTE;
     _sftp_sess = NULL;
     _history.clear();
     _history.reserve(HISTORY_SIZE);
-    _hisID = 0;
     UTIL::getHomeDir( &_home );
     _hlen = strlen( _home );
     this->regCmd();
@@ -95,6 +97,8 @@ cmdStat cmdParser::readCmd() {
     cmdStat stat = this->readChar(cin);
     if ( stat == CMD_EXECUTE ) {
         stat = this->interpretateAndExecute();
+        if ( stat == CMD_CHANGE_REMOTE_SCOPE ) _scope = REMOTE;
+        if ( stat == CMD_CHANGE_LOCAL_SCOPE  ) _scope = LOCAL;
     }
     errMgr.handle(stat);
     return stat;
@@ -364,11 +368,15 @@ void cmdParser::autoComplete() {
         this->completeCmd( tokens[0] );
     }
     else {
+        cmpltStat stat;
         if ( *(_bufPtr-1) == ' ' ) {
-            this->completePath( "" );
+            stat = this->completePath( "", tokens[0]=="cd"||tokens[0]=="lcd" );
         }
         else {
-            this->completePath( tokens.back() );
+            stat = this->completePath( tokens.back(), tokens[0]=="cd"||tokens[0]=="lcd" );
+        }
+        if ( !errMgr.handle( stat ) ) {
+            this->rePrintBuf();
         }
     }
 }
@@ -426,7 +434,8 @@ void cmdParser::completeCmd(const std::string& prtCmd) {
 }
 
 // TODO zsh-like tab selection
-void cmdParser::completePath(const std::string& prtPath) {
+// TODO when prtPath starts with '/', make sure it reads from absolute path
+cmpltStat cmdParser::completePath(const std::string& prtPath, bool dirOnly) {
     int printWidth = MATCH_KEY_OUTPUT_MIN_WIDTH;
 
     // the second entry in each element indicates whether
@@ -436,21 +445,32 @@ void cmdParser::completePath(const std::string& prtPath) {
     // make sure to read the correct dir
     std::string targetDir, prtFile;
     UTIL::splitPathFile(prtPath, targetDir, prtFile);
-    UTIL::readDir(targetDir.c_str(), matched);
+
+    // read from the current scope
+    cmpltStat stat = sftp::SFTP_OK;
+    if ( _scope == LOCAL )  UTIL::readDir(targetDir.c_str(), matched);
+    if ( _scope == REMOTE ) stat = this->_sftp_sess->readDir(targetDir, matched);
+    if ( stat   != sftp::SFTP_OK ) return stat;
 
     // don't show hidden files unless query string starts with '.'
     bool ignoreHidden = prtFile.size() ? prtFile[0] != '.' : true;
 
     // check matched
     for (size_t i = 0; i < matched.size(); ++i) {
-        if ( matched[i].first[0] == '.' && ignoreHidden ) { 
+        if ( dirOnly && !matched[i].second ) { // filter out not-direcotry entries if necessary
+            std::swap( matched[i], matched.back() );
+            matched.pop_back();
+            --i;
+            continue;
+        }
+        if ( matched[i].first[0] == '.' && ignoreHidden ) { // filter out hidden files if necessary
             std::swap( matched[i], matched.back() );
             matched.pop_back();
             --i;
             continue;
         }
         if ( UTIL::strNcmp_soft( prtFile, matched[i].first, prtFile.length() ) != 0 ||
-             prtFile.length() > matched[i].first.length() ) {
+             prtFile.length() > matched[i].first.length() ) { // mismatch
             std::swap( matched[i], matched.back() );
             matched.pop_back();
             --i;
@@ -516,11 +536,13 @@ void cmdParser::completePath(const std::string& prtPath) {
             }
         }
     }
+    return stat;
 }
 
 void cmdParser::showMatched(const std::vector<std::pair<std::string, bool> >& matched, int printWidth) {
+    printWidth += 2;
     int twidth = UTIL::getTermWidth();
-    int nItms  = twidth / (printWidth + 2);
+    int nItms  = twidth / printWidth;
     int count  = 0;
 
     // print matches after newline
@@ -599,7 +621,6 @@ void cmdParser::retrieveHistory(short tID) {
     _hisID = tID;
 }
 
-// TODO: print pwd in prompt
 void cmdParser::newLineCmd() {
 
     // save history
@@ -624,8 +645,7 @@ void cmdParser::resetBuf() {
     this->printPrompt();
 }
 
-// TODO: print wd for server
-//       print at most CWD_DEPTH_MAX deep
+// TODO: should keep track of whether cd/lcd was triggered
 static char cwdBufabbrv[CWD_BUF_MAX];
 void cmdParser::printPrompt() {
 
@@ -635,9 +655,17 @@ void cmdParser::printPrompt() {
         return;
     }
 
-    cout << BOLD_YELLOW << '[' << _prompt << ']';
-    cout << BOLD_CYAN   << " local";
-    cout << BOLD_RED    << " ➜ ";
+    std::stringstream sswd;
+    if ( _scope == LOCAL )  this->getLocalCWD( sswd );
+    if ( _scope == REMOTE ) this->getRemoteCWD( sswd );
+
+    cout << sswd.str() << " » ";
+}
+
+void cmdParser::getLocalCWD(std::stringstream& ss) const {
+    ss << BOLD_YELLOW << '[' << _prompt << ']';
+    ss << BOLD_CYAN   << " local ";
+    ss << BOLD_RED    << " ➜ ";
 
     if ( getcwd(cwdBuf, CWD_BUF_MAX) == NULL ) {
         // dynamic memory allocation is not implemented
@@ -653,19 +681,33 @@ void cmdParser::printPrompt() {
     }
 
     // find the last CWD_DEPTH_MAX directories
-    int pos = (int)strlen(cwdBuf)-1;
+    this->trimPath( cwdBuf );
+
+    ss << BOLD_GREEN  << cwdBufabbrv << COLOR_RESET;
+}
+
+void cmdParser::getRemoteCWD(std::stringstream& ss) const {
+    const char* cwdRemote = this->_sftp_sess->pwd();
+    this->trimPath( cwdRemote );
+    ss << BOLD_YELLOW << '[' << _prompt << ']';
+    ss << BOLD_CYAN   << " remote";
+    ss << BOLD_RED    << " ➜ ";
+    ss << BOLD_GREEN << cwdBufabbrv << COLOR_RESET;
+}
+
+// the trimed path will be saved the cwdBufabbrv
+// which is a static char*
+void cmdParser::trimPath(const char* fullpath) const {
+    int pos = (int)strlen(fullpath)-1;
     int count = 0;
     for (; pos > 0; --pos) {
-        if ( cwdBuf[pos] == '/' ) ++count;
+        if ( fullpath[pos] == '/' ) ++count;
         if ( count == CWD_DEPTH_MAX ) {
             ++pos; // do not print the thrid '/'
             break;
         }
     }
-    UTIL::substr(cwdBuf, cwdBufabbrv, pos, strlen(cwdBuf)-pos+1);
-
-    cout << BOLD_GREEN  << cwdBufabbrv;
-    cout << COLOR_RESET << " » ";
+    UTIL::substr(fullpath, cwdBufabbrv, pos, strlen(fullpath)-pos+1);
 }
 
 void cmdParser::makeCopy() {

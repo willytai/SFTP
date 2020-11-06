@@ -7,6 +7,7 @@
 #include <libssh/libssh.h>
 #include <libssh/sftp.h>
 #include <string>
+#include <vector>
 #include "def.h"
 
 namespace sftp
@@ -31,7 +32,9 @@ enum sftpStat
     SFTP_VERIFY_UPDATE_KNOWN_HOST_ERROR = 14,
     SFTP_VERIFY_KNOWN_HOST_ERROR = 15,
 
-    SFTP_CD_ERROR = 16
+    SFTP_CD_ERROR = 16,
+
+    SFTP_READDIR_ERROR,
 };
 
 class sftpSession
@@ -55,8 +58,9 @@ public:
 
     sftpStat start();
 
-    const char* pwd() const { return _pwd.c_str(); }
+    const char* pwd() const;
     sftpStat    cd(std::string&);
+    sftpStat    readDir(const std::string&, std::vector<std::pair<std::string, bool> >&) const;
 
 private:
     sftpStat initSSHSession();
@@ -80,6 +84,8 @@ private:
     // this is always a relative path to the $HOME directory on the remote server
     std::string       _pwd;
     std::string       _home;
+
+    // always points to the current working directory
     sftp_dir          _dir;
 };
 

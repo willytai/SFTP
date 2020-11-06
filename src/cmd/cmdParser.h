@@ -1,6 +1,7 @@
 #ifndef __CMD_PARSER_H__
 #define __CMD_PARSER_H__
 
+#include <sstream>
 #include <string.h>
 #include <string>
 #include <vector>
@@ -26,13 +27,17 @@ enum cmdStat
     CMD_OPT_ILLEGAL  = 6,
 
     // command execution error
-    CMD_EXEC_ERROR   = 9,
+    CMD_EXEC_ERROR   = 7,
 
-    CMD_ARG_TOO_MANY = 10,
+    CMD_ARG_TOO_MANY = 8,
 
     // command registration
-    CMD_REG_FAIL     = 7,
-    CMD_REG_DONE     = 8,
+    CMD_REG_FAIL     = 9,
+    CMD_REG_DONE     = 10,
+
+    // change scope
+    CMD_CHANGE_REMOTE_SCOPE = 11,
+    CMD_CHANGE_LOCAL_SCOPE  = 12,
 
     CMD_DUMMY
 };
@@ -130,9 +135,10 @@ public:
     errorMgr() : _colorful(false) {}
     ~errorMgr() {}
 
-    void handle(const cmdStat&);
-    void handle(const argStat&);
-    void handle(const sftp::sftpStat&);
+    // handle returns false if there is actually error to be handled
+    bool handle(const cmdStat&);
+    bool handle(const argStat&);
+    bool handle(const sftp::sftpStat&);
     bool colorOutput() const { return _colorful; }
 
     // for 'ls' and 'lls'
@@ -173,6 +179,7 @@ private:
     void sftpVrfyHostConnectDefined() const;
     void sftpVrfyUpdateError() const;
     void sftpVrfyKnownHostError() const;
+    void sftpReaddirError() const;
 
 private:
     // colorful print or not
@@ -190,8 +197,15 @@ class cmdParser
 #define TAB_STOP 4
 #define PG_OFFSET 10
 #define MATCH_KEY_OUTPUT_MIN_WIDTH 8
-#define CWD_BUF_MAX 256
-#define CWD_DEPTH_MAX 3
+
+// scope
+#define REMOTE 1
+#define LOCAL  0
+
+// status of autoComplete would be the same as sftpStat
+// since errors are only likely to occur during transmission
+// between client and server
+#define cmpltStat sftp::sftpStat
 
 typedef std::unordered_map<std::string, cmdExec*> cmdMAP;
 typedef std::pair<std::string, cmdExec*>          cmdKeyHandlerPair;
@@ -236,11 +250,12 @@ private:
     void resetBuf();
     void printPrompt();
 
+    cmpltStat completePath(const std::string&, bool dirOnly = false);
     void autoComplete();
     void completeCmd(const std::string&);
-    void completePath(const std::string&);
     void showMatched(const std::vector<std::pair<std::string, bool> >&, int);
     void rePrintBuf();
+
     void insertChar(char, int count = 1);
     void insertStr(const char*, size_t);
     void moveBufPtr(const char*);
@@ -249,6 +264,11 @@ private:
     void newLineCmd();
     void retrieveHistory(short);
     void makeCopy();
+
+    // prompt helper functions
+    void getLocalCWD(std::stringstream&) const;
+    void getRemoteCWD(std::stringstream&) const;
+    void trimPath(const char*) const;
 
 private:
     std::string  _prompt;
@@ -275,6 +295,9 @@ private:
     // store the length to avoid recalculating it every time
     const char* _home;
     size_t      _hlen;
+
+    // the scope to perfoem linux commands
+    short       _scope;
 
 #ifdef DEV
     std::string _filename;

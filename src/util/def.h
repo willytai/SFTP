@@ -33,4 +33,9 @@ using std::istream;
 #define NORMAL_WHITE    "\033[0;37m"
 #define COLOR_RESET     "\033[0m"
 
+
+// for prompt printing
+#define CWD_BUF_MAX 256
+#define CWD_DEPTH_MAX 3
+
 #endif /* __DEF_F__ */

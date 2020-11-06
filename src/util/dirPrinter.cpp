@@ -131,7 +131,9 @@ bool Printer::columnPrint(const Files& entries) const {
     }
 
     // max number of files in one line
-    int nfiles = twidth / (w_usrname+1);
+    // add an extra space for 'space'
+    w_usrname += 1;
+    int nfiles = twidth / w_usrname;
 
     // print
     int count = 0;
