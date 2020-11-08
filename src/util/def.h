@@ -38,4 +38,6 @@ using std::istream;
 #define CWD_BUF_MAX 256
 #define CWD_DEPTH_MAX 3
 
+#define ESCAPE_CHAR '\\'
+
 #endif /* __DEF_F__ */

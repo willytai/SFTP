@@ -1,11 +1,12 @@
+sftp> local
 sftp> lcd t tab
-tab.o    tab.cpp  tab/     
+tab.o     tab.cpp   tab/      
 sftp> lcd tab/tab.
-tab.in   tab.out  
+tab.in    tab.out   
 sftp> lcd tab/tab.
 sftp> l
-lcd      lls      ls       
+lcd       lls       ls        
 sftp> lcd ta  tab/.
-./       ../      
+./        ../       
 sftp> lcd tab/..  ../t tab
 sftp> 

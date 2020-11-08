@@ -10,28 +10,42 @@
 namespace UTIL
 {
 
-void parseTokens(const std::string& buf, std::vector<std::string>& tokens, char delimiter) {
+void parseTokens(const std::string& buf, std::vector<std::string>& tokens, char delimiter, size_t maxTokens) {
 
     // dummy check
     if (buf.empty()) return;
 
     size_t start = 0, end;
 
-    // get rid of leading spaces and check
-    for (; start < buf.length(); ++start) if (buf[start] != delimiter) break;
+    // get rid of leading delimiters
+    // will stop if ESCAPE_CHAR is encountered
+    for (; start < buf.length(); ++start) {
+        if (buf[start] != delimiter) break;
+    }
     if (start == buf.length()) return;
 
     // get rid of trailing delimiters
     size_t maxCheck = buf.length()-1;
     while (buf[maxCheck] == delimiter) --maxCheck;
 
-    end = start+1;
+    // make sure to deal with escape characters for the first word
+    end = buf[start] == ESCAPE_CHAR ? start+2 : start+1;
     while ( end <= maxCheck ) {
-        if (buf[end] == delimiter) {
+        if ( buf[end] == ESCAPE_CHAR ) {
+            end += 2;
+        }
+        else if ( buf[end] == delimiter ) {
             tokens.push_back(buf.substr(start, end-start));
             start = end+1;
             while ( buf[start] == delimiter ) start++;
             end = start+1;
+
+            // fill at most maxTokens tokens
+            if ( tokens.size() == maxTokens-1 ) {
+                tokens.push_back(buf.substr(start, maxCheck-start+1));
+                return;
+            }
+
         }
         else ++end;
     }

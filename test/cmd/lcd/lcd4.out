@@ -1,5 +1,5 @@
 sftp> lcd lls/dirforcheck
 sftp> lls
-file2.txt file3.txt file1.txt 
+file2.txt  file3.txt  file1.txt  
 sftp> lcd ../../
 sftp> 

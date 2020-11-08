@@ -1,3 +1,3 @@
 sftp> lls ./lls/dirforcheck
-file2.txt file3.txt file1.txt 
+file2.txt  file3.txt  file1.txt  
 sftp> 

@@ -178,41 +178,27 @@ cmdStat cmdParser::regEachCmd(std::string cmd, size_t minCmp, cmdExec* cmdHandle
     }
 }
 
+// analyze the command keyword and its option
 cmdStat cmdParser::interpretateAndExecute() const {
-
-    /*
-     * analyze the command keyword and its option
-     * ignore the white spaces in the beginning and end
-     */
     size_t optEnd = _bufEnd - _buf;
 
     // dummy check first
     if ( optEnd == 0 ) return CMD_DONE;
-    while ( _buf[optEnd-1] == ' ' ) {
-        // command with entire white spaces
-        if ( optEnd == 1 ) return CMD_DONE;
-        else --optEnd;
-    }
-    size_t cmdStart = 0;
-    for (; cmdStart < optEnd; ++cmdStart) if ( _buf[cmdStart] != ' ' ) break;
-    size_t cmdEnd = cmdStart+1;
-    for (; cmdEnd < optEnd; ++cmdEnd) if ( _buf[cmdEnd] == ' ' ) break;
-    size_t optStart = cmdEnd;
-    for (; optStart < optEnd; ++optStart) if ( _buf[optStart] != ' ' ) break;
-    std::string cmd, opt;
-    cmd.resize(cmdEnd-cmdStart);
-    opt.resize(optEnd-optStart);
-    for (size_t i = 0; i < cmd.size(); ++i) {
-        cmd[i] = _buf[cmdStart+i];
-    }
-    for (size_t i = 0; i < opt.size(); ++i) {
-        opt[i] = _buf[optStart+i];
-    }
+
+    // split _buf into two parts
+    std::vector<std::string> tokens;
+    size_t buflen = _bufEnd - _buf;
+    char* sub = (char*)malloc(buflen*sizeof(char));
+    UTIL::substr( _buf, sub, 0, buflen );
+    UTIL::parseTokens( sub, tokens, ' ', 2 );
+    free(sub);
+    if ( tokens.empty() ) return CMD_DONE;
+    if ( tokens.size() == 1 ) tokens.emplace_back("");
 
     // find the corresponding command class and execute
     cmdExec* cmdHandler;
-    if ( (cmdHandler = this->getCmdHandler(cmd)) == NULL ) return CMD_ERROR;
-    else return cmdHandler->execute(opt);
+    if ( (cmdHandler = this->getCmdHandler(tokens[0])) == NULL ) return CMD_ERROR;
+    else return cmdHandler->execute(tokens[1]);
 }
 
 /**************************************

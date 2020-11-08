@@ -79,6 +79,63 @@ TEST_CASE( "-- parseTokens --", "[UTIL]" )
         REQUIRE( container[2]     == "he fuck  is " );
         REQUIRE( container[3]     == "his  " );
     }
+    SECTION("string with normal escape characters")
+    {
+        std::string test = "this is an\\ escape character";
+        std::vector<std::string> container;
+        UTIL::parseTokens(test, container, ' ');
+        REQUIRE( container.size() == 4 );
+        REQUIRE( container[0]     == "this" );
+        REQUIRE( container[1]     == "is" );
+        REQUIRE( container[2]     == "an\\ escape" );
+        REQUIRE( container[3]     == "character" );
+    }
+    SECTION("string with leading escape characters 1")
+    {
+        std::string test = "\\this is an escape character";
+        std::vector<std::string> container;
+        UTIL::parseTokens(test, container, ' ');
+        REQUIRE( container.size() == 5 );
+        REQUIRE( container[0]     == "\\this" );
+        REQUIRE( container[1]     == "is" );
+        REQUIRE( container[2]     == "an" );
+        REQUIRE( container[3]     == "escape" );
+        REQUIRE( container[4]     == "character" );
+    }
+    SECTION("string with leading escape characters 2")
+    {
+        std::string test = "\\ this is an escape character";
+        std::vector<std::string> container;
+        UTIL::parseTokens(test, container, ' ');
+        REQUIRE( container.size() == 5 );
+        REQUIRE( container[0]     == "\\ this" );
+        REQUIRE( container[1]     == "is" );
+        REQUIRE( container[2]     == "an" );
+        REQUIRE( container[3]     == "escape" );
+        REQUIRE( container[4]     == "character" );
+    }
+    SECTION("string with leading escape characters 3")
+    {
+        std::string test = "\\  this is an escape character";
+        std::vector<std::string> container;
+        UTIL::parseTokens(test, container, ' ');
+        REQUIRE( container.size() == 6 );
+        REQUIRE( container[0]     == "\\ " );
+        REQUIRE( container[1]     == "this" );
+        REQUIRE( container[2]     == "is" );
+        REQUIRE( container[3]     == "an" );
+        REQUIRE( container[4]     == "escape" );
+        REQUIRE( container[5]     == "character" );
+    }
+    SECTION("max number of tokens")
+    {
+        std::string test = "max number of tokens";
+        std::vector<std::string> container;
+        UTIL::parseTokens(test, container, ' ', 2);
+        REQUIRE( container.size() == 2 );
+        REQUIRE( container[0]     == "max" );
+        REQUIRE( container[1]     == "number of tokens" );
+    }
 }
 TEST_CASE( "-- strNcmp_soft --", "[UTIL]" )
 {

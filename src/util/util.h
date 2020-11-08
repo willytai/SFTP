@@ -8,7 +8,7 @@
 namespace UTIL
 {
 // common helper functions
-void parseTokens(const std::string&, std::vector<std::string>&, char delimiter = ' ');
+void parseTokens(const std::string&, std::vector<std::string>&, char delimiter = ' ', size_t maxTokens = 0xffffffffffffffff);
 void substr(const char*, char*, size_t, size_t n = 0xffffffffffffffff, size_t substart = 0);
 int  strNcmp(const std::string&, const std::string&, size_t);
 int  strNcmp(const char*, const char*, size_t);
