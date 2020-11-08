@@ -526,7 +526,7 @@ cmpltStat cmdParser::completePath(const std::string& prtPath, bool dirOnly) {
 }
 
 void cmdParser::showMatched(const std::vector<std::pair<std::string, bool> >& matched, int printWidth) {
-    printWidth += 2;
+    printWidth += 3;
     int twidth = UTIL::getTermWidth();
     int nItms  = twidth / printWidth;
     int count  = 0;
@@ -539,10 +539,10 @@ void cmdParser::showMatched(const std::vector<std::pair<std::string, bool> >& ma
         }
         else if ( errMgr.colorOutput() ) {
             cout << BOLD_RED;
-            cout << matched[i].first << COLOR_RESET << left << setw(printWidth-(int)matched[i].first.size()) << '/';
+            cout << matched[i].first << COLOR_RESET << left << setw(printWidth-(int)matched[i].first.size()-1) << '/';
         }
         else {
-            cout << matched[i].first << left << setw(printWidth-(int)matched[i].first.size()) << '/';
+            cout << matched[i].first << left << setw(printWidth-(int)matched[i].first.size()-1) << '/';
         }
         if ( ++count == nItms ) {
             count = 0;
