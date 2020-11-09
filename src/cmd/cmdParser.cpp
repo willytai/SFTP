@@ -15,7 +15,7 @@ cmdParser::cmdParser(const char* prompt) {
     _prompt    = prompt;
     _bufEnd    = _bufPtr = _bufTmpPtr = NULL;
     _hisID     = 0;
-    _scope     = REMOTE;
+    _scope     = LOCAL;
     _sftp_sess = NULL;
     _history.clear();
     _history.reserve(HISTORY_SIZE);

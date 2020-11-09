@@ -144,6 +144,11 @@ bool Printer::columnPrint(const Files& entries) const {
             cout << left << setw(w_usrname) << info->d_name;
             cout << COLOR_RESET;
         }
+        else if ( _colorful && info->d_type == DT_LNK ) {
+            cout << NORMAL_MAGENTA;
+            cout << left << setw(w_usrname) << info->d_name;
+            cout << COLOR_RESET;
+        }
         else {
             cout << left << setw(w_usrname) << info->d_name;
         }
