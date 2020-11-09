@@ -30,7 +30,6 @@ bool Printer::print(const dirCntMap& dirContent) const {
 /**************
  * long print *
  *************/
-// TODO: print symbolic links in correct format
 bool Printer::longPrint(const char* dirName, const Files& entries) const {
     bool returnStat = true;
     bool PRINT_ALL  = this->checkFlag(LIST_ALL);
@@ -112,7 +111,6 @@ bool Printer::longPrint(const char* dirName, const Files& entries) const {
 /****************
  * column print *
  ***************/
-// TODO: print format weird for long filenames (Desktop)
 bool Printer::columnPrint(const Files& entries) const {
     bool returnStat = true;
     bool PRINT_ALL  = this->checkFlag(LIST_ALL);
