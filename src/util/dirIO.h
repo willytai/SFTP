@@ -21,6 +21,9 @@ bool   readDir(const char*, std::vector<std::pair<std::string, bool> >&);
 
 struct EntryStat
 {
+static char TYPE_DIR;
+static char TYPE_LNK;
+static char TYPE_REG;
     char            en_type;        // entry type
     char            en_perm[10];    // entry permission in string
     char            en_xattr;       // extended attributes

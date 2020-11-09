@@ -4,8 +4,14 @@
 
 namespace UTIL
 {
+// static data members initialization
+char EntryStat::TYPE_DIR = 'd';
+char EntryStat::TYPE_LNK = 'l';
+char EntryStat::TYPE_REG = 'r';
+
 // returns false if dir cannot be opened
 // container will contain filenames and whether the corresponding entry is a directory
+// TODO read dir/file whose names have spaces
 bool readDir(const char* dir, std::vector<std::pair<std::string, bool> >& container) { 
     DIR* dirptr = opendir(dir);
     if ( dirptr == NULL ) return false;

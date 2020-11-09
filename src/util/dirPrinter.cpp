@@ -89,8 +89,8 @@ bool Printer::longPrint(const char* dirName, const Files& entries) const {
         else {
             cout << right << setw(w_size) << infoStat.en_size << ' ';
         }
-        cout << infoStat.en_mtime        << ' ';
-        if ( _colorful && infoStat.en_type == 'd' ) {
+        cout << infoStat.en_mtime << ' ';
+        if ( _colorful && infoStat.en_type == UTIL::EntryStat::TYPE_DIR ) {
             cout << BOLD_CYAN << infoStat.en_name << COLOR_RESET << endl;
         }
         else if ( _colorful && infoStat.en_type == 'l' ) {
@@ -138,7 +138,15 @@ bool Printer::columnPrint(const Files& entries) const {
     for (size_t i = 0; i < entries.size(); ++i) {
         const auto& info = entries[i];
         if ( !PRINT_ALL && info->d_name[0] == '.') continue;
-        cout << left << setw(w_usrname) << info->d_name;
+
+        if ( _colorful && info->d_type == DT_DIR ) {
+            cout << BOLD_CYAN;
+            cout << left << setw(w_usrname) << info->d_name;
+            cout << COLOR_RESET;
+        }
+        else {
+            cout << left << setw(w_usrname) << info->d_name;
+        }
         if ( ++count == nfiles ) {
             count = 0;
             cout << endl;

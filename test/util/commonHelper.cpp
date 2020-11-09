@@ -127,6 +127,15 @@ TEST_CASE( "-- parseTokens --", "[UTIL]" )
         REQUIRE( container[4]     == "escape" );
         REQUIRE( container[5]     == "character" );
     }
+    SECTION("string with trailing escape characters")
+    {
+        std::string test = "lcd fuck\\ ";
+        std::vector<std::string> container;
+        UTIL::parseTokens(test, container, ' ');
+        REQUIRE( container.size() == 2 );
+        REQUIRE( container[0]     == "lcd" );
+        REQUIRE( container[1]     == "fuck\\ " );
+    }
     SECTION("max number of tokens")
     {
         std::string test = "max number of tokens";

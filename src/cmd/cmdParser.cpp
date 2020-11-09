@@ -421,6 +421,7 @@ void cmdParser::completeCmd(const std::string& prtCmd) {
 
 // TODO zsh-like tab selection
 // TODO when prtPath starts with '/', make sure it reads from absolute path
+// TODO place '\' before a space/parathesis in a filename that contains them
 cmpltStat cmdParser::completePath(const std::string& prtPath, bool dirOnly) {
     int printWidth = MATCH_KEY_OUTPUT_MIN_WIDTH;
 
