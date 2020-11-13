@@ -71,3 +71,19 @@ TEST_CASE( "-- getEntryStat --", "[UTIL]")
         #endif
     }
 }
+TEST_CASE( "-- rmEscChar --", "[UTIL]" )
+{
+    char* ans;
+    REQUIRE( (ans = UTIL::rmEscChar("asdf")) == NULL );
+    REQUIRE( std::string(ans = UTIL::rmEscChar("a\\ \\*shit")) == "a *shit" );
+    free( ans );
+}
+TEST_CASE( "-- fillEscChar --", "[UTIL]" )
+{
+    char* ans;
+    REQUIRE( (ans = UTIL::fillEscChar("asdfghj")) == NULL);
+    REQUIRE( std::string(ans = UTIL::fillEscChar("a b")) == "a\\ b");
+    free( ans );
+    REQUIRE( std::string(ans = UTIL::fillEscChar("a*b ")) == "a\\*b\\ ");
+    free( ans );
+}

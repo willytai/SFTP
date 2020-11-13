@@ -11,7 +11,6 @@ char EntryStat::TYPE_LNK = 'l';
 char EntryStat::TYPE_REG = 'r';
 
 // check for escape characters in strings, returns a new string without them
-// TODO write test
 char* rmEscChar(const char* str) {
     char* ret = NULL;
     size_t len = strlen(str);
@@ -36,7 +35,6 @@ char* rmEscChar(const char* str) {
 }
 
 // fill escape char for special characters
-// TODO write test
 char* fillEscChar(const char* str) {
     char* ret = NULL;
     size_t len = strlen( str );
