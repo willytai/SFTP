@@ -144,6 +144,7 @@ cmdStat cmdParser::readChar(std::istream& stream) {
 /*******************************/
 /* commands are CASE SENSITIVE!*/
 /*******************************/
+// TODO check if commands contain illegal keywords i.e. non-alphabetical characters
 cmdStat cmdParser::regEachCmd(std::string cmd, size_t minCmp, cmdExec* cmdHandler) {
     // check for ambiguity
     std::string tmp = cmd;
@@ -343,19 +344,24 @@ void cmdParser::deleteChar() {
 
 // complete commands or file paths or just tabs
 void cmdParser::autoComplete() {
+    size_t buflen = _bufPtr - _buf;
+    char* buf     = (char*)malloc(buflen*sizeof(char));
     std::vector<std::string> tokens;
-    std::string buf; buf.resize(_bufPtr-_buf);
-    for (size_t i = 0; i < buf.length(); ++i) buf[i] = _buf[i];
+    UTIL::substr( _buf, buf, 0, buflen );
     UTIL::parseTokens(buf, tokens);
+    free(buf);
     if ( tokens.empty() ) {
         this->insertChar(' ', TAB_STOP);
     }
     else if ( tokens.size() == 1 && *(_bufPtr-1) != ' ' ) {
+        // this is safe because only alphabetical characters are allowed in command keywords
         this->completeCmd( tokens[0] );
     }
     else {
         cmpltStat stat;
-        if ( *(_bufPtr-1) == ' ' ) {
+        // buflen is garuanteed to be at least 2, so the statement is safe
+        // make sure that space is not preceded by an escape chartacter
+        if ( *(_bufPtr-1) == SPACE_CHAR && *(_bufPtr-2) != ESCAPE_CHAR ) {
             stat = this->completePath( "", tokens[0]=="cd"||tokens[0]=="lcd" );
         }
         else {
@@ -423,6 +429,7 @@ void cmdParser::completeCmd(const std::string& prtCmd) {
 // TODO when prtPath starts with '/', make sure it reads from absolute path
 // TODO place '\' before a space/parathesis in a filename that contains them
 cmpltStat cmdParser::completePath(const std::string& prtPath, bool dirOnly) {
+    cout << "partial path: " << prtPath << endl;
     int printWidth = MATCH_KEY_OUTPUT_MIN_WIDTH;
 
     // the second entry in each element indicates whether

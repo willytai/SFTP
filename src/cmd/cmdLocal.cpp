@@ -11,6 +11,7 @@ extern errorMgr errMgr;
 /**********/
 /* llsCmd */
 /**********/
+// TODO support single-file listing and wildcard listing
 cmdStat llsCmd::execute(const std::string& option) const {
     /*************************************************
      * -- Split with ' '

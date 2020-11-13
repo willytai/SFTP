@@ -12,6 +12,7 @@ char EntryStat::TYPE_REG = 'r';
 // returns false if dir cannot be opened
 // container will contain filenames and whether the corresponding entry is a directory
 // TODO read dir/file whose names have spaces
+//      filenames may contain escape characters for the purpose of readability and command line inputs
 bool readDir(const char* dir, std::vector<std::pair<std::string, bool> >& container) { 
     DIR* dirptr = opendir(dir);
     if ( dirptr == NULL ) return false;
