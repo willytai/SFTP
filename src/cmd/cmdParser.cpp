@@ -429,7 +429,6 @@ void cmdParser::completeCmd(const std::string& prtCmd) {
 // TODO when prtPath starts with '/', make sure it reads from absolute path
 // TODO place '\' before a space/parathesis in a filename that contains them
 cmpltStat cmdParser::completePath(const std::string& prtPath, bool dirOnly) {
-    cout << "partial path: " << prtPath << endl;
     int printWidth = MATCH_KEY_OUTPUT_MIN_WIDTH;
 
     // the second entry in each element indicates whether
@@ -547,10 +546,10 @@ void cmdParser::showMatched(const std::vector<std::pair<std::string, bool> >& ma
         }
         else if ( errMgr.colorOutput() ) {
             cout << BOLD_RED;
-            cout << matched[i].first << COLOR_RESET << left << setw(printWidth-(int)matched[i].first.size()-1) << '/';
+            cout << matched[i].first << COLOR_RESET << left << setw(printWidth-(int)matched[i].first.size()) << '/';
         }
         else {
-            cout << matched[i].first << left << setw(printWidth-(int)matched[i].first.size()-1) << '/';
+            cout << matched[i].first << left << setw(printWidth-(int)matched[i].first.size()) << '/';
         }
         if ( ++count == nItms ) {
             count = 0;

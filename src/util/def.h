@@ -40,5 +40,6 @@ using std::istream;
 
 #define ESCAPE_CHAR '\\'
 #define SPACE_CHAR ' '
+#define WILDCARD_CHAR '*'
 
 #endif /* __DEF_F__ */

@@ -16,6 +16,8 @@
 namespace UTIL
 {
 
+char*  rmEscChar(const char*);
+char*  fillEscChar(const char*);
 bool   readDir(const char*, std::vector<dirent*>&);
 bool   readDir(const char*, std::vector<std::pair<std::string, bool> >&);
 

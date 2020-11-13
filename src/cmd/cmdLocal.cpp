@@ -111,7 +111,15 @@ cmdStat lcdCmd::execute(const std::string& option) const {
         return CMD_ARG_TOO_MANY;
     }
     const std::string& target = tokens.size() == 0 ? _home : tokens[0];
-    if ( chdir(target.c_str()) != 0 ) {
+
+    // check for escape characters
+    char* nEscDir = UTIL::rmEscChar( target.c_str() );
+    const char* dir = nEscDir == NULL ? target.c_str() : nEscDir;
+    int stat = chdir( dir );
+    if ( nEscDir ) free( nEscDir );
+
+    // error handling
+    if ( stat != 0 ) {
         errMgr.setErrCmd("lcd");
         errMgr.setErrArg( target );
         return CMD_EXEC_ERROR;

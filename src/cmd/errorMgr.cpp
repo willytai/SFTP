@@ -58,7 +58,9 @@ bool errorMgr::handle(const sftp::sftpStat& errCode) {
  *********************/
 void errorMgr::handleNonExistDir(const std::string& cmd, const std::vector<std::string>& nonExistDir, bool lbreak) const {
     for (const auto& dir : nonExistDir) {
+        if ( _colorful ) cout << BOLD_RED;
         cerr << cmd << ": " << dir << ": No such file or directory" << endl;
+        if ( _colorful ) cout << COLOR_RESET;
         if ( lbreak ) cerr << endl << endl;
     }
 }

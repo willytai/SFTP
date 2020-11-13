@@ -1,4 +1,5 @@
 #include "dirIO.h"
+#include "def.h"
 #include <unistd.h>
 #include <string.h>
 
@@ -9,22 +10,81 @@ char EntryStat::TYPE_DIR = 'd';
 char EntryStat::TYPE_LNK = 'l';
 char EntryStat::TYPE_REG = 'r';
 
+// check for escape characters in strings, returns a new string without them
+// TODO write test
+char* rmEscChar(const char* str) {
+    char* ret = NULL;
+    size_t len = strlen(str);
+    size_t offset = 0, i = 0;
+    for (; i < len; ++i) {
+        if ( ret == NULL && str[i] == ESCAPE_CHAR ) {
+            ret = (char*)malloc(len*sizeof(char));
+            memset(ret, '\0', len);
+            memcpy(ret, str, i);
+            ++offset;
+        }
+        else if ( ret != NULL && str[i] == ESCAPE_CHAR ) {
+            ++offset;
+        }
+        else if ( ret != NULL && str[i] != ESCAPE_CHAR ) {
+            ret[i-offset] = str[i];
+        }
+        else continue;
+    }
+    if ( ret ) ret[i] = '\0';
+    return ret;
+}
+
+// fill escape char for special characters
+// TODO write test
+char* fillEscChar(const char* str) {
+    char* ret = NULL;
+    size_t len = strlen( str );
+    size_t i = 0, offset = 0;
+    for (; i < len; ++i) {
+        if ( str[i] == SPACE_CHAR ||
+             str[i] == WILDCARD_CHAR) {
+            if ( ret == NULL ) {
+                ret = (char*)malloc((2*len-i+1)*sizeof(char));
+                memset(ret, '\0', 2*len-i);
+                memcpy(ret, str, i);
+            }
+            ret[i+(offset++)] = ESCAPE_CHAR;
+            ret[i+offset] = str[i];
+        }
+        else if ( ret ) {
+            ret[i+offset] = str[i];
+        }
+    }
+    if ( ret ) ret[i+offset] = '\0';
+    return ret;
+}
+
 // returns false if dir cannot be opened
 // container will contain filenames and whether the corresponding entry is a directory
-// TODO read dir/file whose names have spaces
+// this function should be called only when filenames with '\' are desired (i.e. when autocompeting)
+// TODO read /file whose names have spaces
 //      filenames may contain escape characters for the purpose of readability and command line inputs
-bool readDir(const char* dir, std::vector<std::pair<std::string, bool> >& container) { 
-    DIR* dirptr = opendir(dir);
+bool readDir(const char* dir, std::vector<std::pair<std::string, bool> >& container) {
+    char* nEscDir = rmEscChar( dir );
+    DIR* dirptr = nEscDir == NULL ? opendir(dir) : opendir(nEscDir);
+    if ( nEscDir != NULL ) free( nEscDir );
     if ( dirptr == NULL ) return false;
     struct dirent* direntry;
     while ( (direntry = readdir(dirptr)) != NULL ) {
-        container.emplace_back( direntry->d_name, direntry->d_type==DT_DIR );
+        char* filled = fillEscChar( direntry->d_name );
+        const char* store = filled == NULL ? direntry->d_name : filled;
+        container.emplace_back( store, direntry->d_type==DT_DIR );
+        if ( filled ) free(filled);
     }
     return true;
 }
 
-bool readDir(const char* dir, std::vector<dirent*>& container) { // returns the entire entries' structure
-    DIR* dirptr = opendir(dir);
+// returns the entire entries' structure
+bool readDir(const char* dir, std::vector<dirent*>& container) {
+    char* nEscDir = rmEscChar( dir );
+    DIR* dirptr = nEscDir == NULL ? opendir(dir) : opendir(nEscDir);
+    if ( nEscDir != NULL ) free( nEscDir );
     if ( dirptr == NULL ) return false;
     struct dirent* direntry;
     while ( (direntry = readdir(dirptr)) != NULL ) {
@@ -52,7 +112,9 @@ bool readDir(const char* dir, std::vector<dirent*>& container) { // returns the 
  * }
  */
 bool getEntryStat(const char* dirName, const char* filename, struct EntryStat* entryStat) {
-    std::string fullname = std::string(dirName);
+    char* nEscDir = rmEscChar( dirName );
+    std::string fullname = nEscDir == NULL ? std::string(dirName) : std::string(nEscDir);
+    if ( nEscDir ) free( nEscDir );
     if ( fullname.back() != '/' ) fullname += "/"+std::string(filename);
     else fullname += std::string(filename);
 
