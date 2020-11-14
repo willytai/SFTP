@@ -250,7 +250,7 @@ private:
     void resetBuf();
     void printPrompt();
 
-    cmpltStat completePath(const std::string&, bool dirOnly = false);
+    cmpltStat completePath(const std::string&, short scope, bool dirOnly = false);
     void autoComplete();
     void completeCmd(const std::string&);
     void showMatched(const std::vector<std::pair<std::string, bool> >&, int);

@@ -359,13 +359,15 @@ void cmdParser::autoComplete() {
     }
     else {
         cmpltStat stat;
+        bool dirOnly = ( tokens[0]=="cd" || tokens[0]=="lcd" );
+        short scope = ( tokens[0] == "lls" || tokens[0] == "lcd" ) ? LOCAL : REMOTE;
         // buflen is garuanteed to be at least 2, so the statement is safe
         // make sure that space is not preceded by an escape chartacter
         if ( *(_bufPtr-1) == SPACE_CHAR && *(_bufPtr-2) != ESCAPE_CHAR ) {
-            stat = this->completePath( "", tokens[0]=="cd"||tokens[0]=="lcd" );
+            stat = this->completePath( "", scope, dirOnly );
         }
         else {
-            stat = this->completePath( tokens.back(), tokens[0]=="cd"||tokens[0]=="lcd" );
+            stat = this->completePath( tokens.back(), scope, dirOnly );
         }
         if ( !errMgr.handle( stat ) ) {
             this->rePrintBuf();
@@ -428,7 +430,7 @@ void cmdParser::completeCmd(const std::string& prtCmd) {
 // TODO zsh-like tab selection
 // TODO when prtPath starts with '/', make sure it reads from absolute path
 // TODO place '\' before a space/parathesis in a filename that contains them
-cmpltStat cmdParser::completePath(const std::string& prtPath, bool dirOnly) {
+cmpltStat cmdParser::completePath(const std::string& prtPath, short scope, bool dirOnly) {
     int printWidth = MATCH_KEY_OUTPUT_MIN_WIDTH;
 
     // the second entry in each element indicates whether
@@ -441,8 +443,8 @@ cmpltStat cmdParser::completePath(const std::string& prtPath, bool dirOnly) {
 
     // read from the current scope
     cmpltStat stat = sftp::SFTP_OK;
-    if ( _scope == LOCAL )  UTIL::readDir(targetDir.c_str(), matched);
-    if ( _scope == REMOTE ) stat = this->_sftp_sess->readDir(targetDir, matched);
+    if ( scope == LOCAL )  UTIL::readDir(targetDir.c_str(), matched);
+    if ( scope == REMOTE ) stat = this->_sftp_sess->readDir(targetDir, matched);
     if ( stat   != sftp::SFTP_OK ) return stat;
 
     // don't show hidden files unless query string starts with '.'
