@@ -31,6 +31,10 @@ void getHomeDir(const char**);
 // split into directory and filename
 void splitPathFile(const std::string&, std::string&, std::string&);
 
+// string manipulation
+char*  rmEscChar(const char*);
+char*  fillEscChar(const char*);
+
 }
 
 #endif /* __UTIL_H__ */

@@ -40,7 +40,8 @@ cmdServer.o: cmdServer.cpp cmdClass.h cmdParser.h ../../include/def.h \
  /usr/local/Cellar/libssh/0.9.5/include/libssh/legacy.h \
  /usr/local/Cellar/libssh/0.9.5/include/libssh/sftp.h \
  /usr/local/Cellar/libssh/0.9.5/include/libssh/libssh.h \
- ../../include/def.h ../../include/util.h
+ ../../include/def.h ../../include/util.h ../../include/dirPrinter.h \
+ ../../include/util.h ../../include/dirIO.h
 cmdSftp.o: cmdSftp.cpp cmdClass.h cmdParser.h ../../include/def.h \
  ../../include/sftpSession.h \
  /usr/local/Cellar/libssh/0.9.5/include/libssh/libssh.h \

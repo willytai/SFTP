@@ -234,13 +234,18 @@ sftpStat sftpSession::initSFTP() {
 
 // sftp does not have the conecpt of "pwd"
 // the working directory is will be stored locally
-sftpStat sftpSession::cd(std::string& path) {
+sftpStat sftpSession::cd(const std::string& path) {
     if ( path.size() == 0 ) { // back to $HOME
         _pwd = _home;
     }
 
+    char* nEscDir = UTIL::rmEscChar( path.c_str() );
+    const char* pdir = nEscDir == NULL ? path.c_str() : nEscDir;
+
     // concatenate path
-    snprintf(fullpath, PATH_BUF_MAX, "%s/%s", _pwd.c_str(), path.c_str());
+    snprintf(fullpath, PATH_BUF_MAX, "%s/%s", _pwd.c_str(), pdir);
+
+    if ( nEscDir ) free( nEscDir );
 
     // if path doesn't exist, set errno properly
     if ( (_dir = sftp_opendir(_sftp_session, fullpath)) == NULL ) {
@@ -291,8 +296,12 @@ sftpStat sftpSession::cd(std::string& path) {
     ssh_string extended_type;
     ssh_string extended_data;
  }*/
+// This function is for autoComplete ONLY!!!!
 sftpStat sftpSession::readDir(const std::string& dir, std::vector<std::pair<std::string, bool> >& container) const {
-    std::string fulldir = _pwd+"/"+dir;
+    char* nEscDir = UTIL::rmEscChar( dir.c_str() );
+    std::string fulldir = nEscDir == NULL ? _pwd+"/"+dir : _pwd+"/"+std::string(nEscDir);
+    if ( nEscDir ) free( nEscDir );
+
     sftp_dir curdir;
     if ( ( curdir = sftp_opendir( _sftp_session, fulldir.c_str() ) ) == NULL ) {
         errMgr.setSftpErr( ssh_get_error(_ssh_session) );
@@ -301,8 +310,42 @@ sftpStat sftpSession::readDir(const std::string& dir, std::vector<std::pair<std:
 
     sftp_attributes curattr;
     while ( (curattr = sftp_readdir( _sftp_session, curdir )) != NULL ) {
-        container.emplace_back( std::string(curattr->name), curattr->longname[0]=='d' );
+        char* filled = UTIL::fillEscChar( curattr->name );
+        const char* store = filled == NULL ? curattr->name : filled;
+        container.emplace_back( std::string(store), curattr->longname[0]=='d' );
+        if ( filled ) free(filled);
         sftp_attributes_free( curattr );
+    }
+
+    // error handling
+    if ( curdir->eof != 1) {
+        errMgr.setSftpErr( ssh_get_error(_ssh_session) );
+        return SFTP_READDIR_ERROR;
+    }
+    if ( sftp_closedir( curdir ) ) {
+        errMgr.setSftpErr( ssh_get_error(_ssh_session) );
+        return SFTP_READDIR_ERROR;
+    }
+
+    return SFTP_OK;
+}
+
+//TODO remember to free the attributes after using the stuffs in the container
+sftpStat sftpSession::readDir(const char* dir, std::vector<sftp_attributes>& container) const {
+    char* nEscDir = UTIL::rmEscChar( dir );
+    std::string fulldir = nEscDir == NULL ? _pwd+"/"+dir : _pwd+"/"+std::string(nEscDir);
+    if ( nEscDir ) free( nEscDir );
+
+    sftp_dir curdir;
+    if ( ( curdir = sftp_opendir( _sftp_session, fulldir.c_str() ) ) == NULL ) {
+        errMgr.setSftpErr( ssh_get_error(_ssh_session) );
+        return SFTP_READDIR_ERROR;
+    }
+
+    sftp_attributes curattr;
+    while ( (curattr = sftp_readdir( _sftp_session, curdir )) != NULL ) {
+        container.push_back( curattr );
+        // sftp_attributes_free( curattr );
     }
 
     // error handling

@@ -59,8 +59,9 @@ public:
     sftpStat start();
 
     const char* pwd() const;
-    sftpStat    cd(std::string&);
+    sftpStat    cd(const std::string&);
     sftpStat    readDir(const std::string&, std::vector<std::pair<std::string, bool> >&) const;
+    sftpStat    readDir(const char*, std::vector<sftp_attributes>&) const;
 
 private:
     sftpStat initSSHSession();

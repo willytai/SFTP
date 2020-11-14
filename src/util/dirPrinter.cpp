@@ -1,4 +1,5 @@
 #include "dirPrinter.h"
+#include "util.h"
 
 namespace LISTING
 {
@@ -151,6 +152,147 @@ bool Printer::columnPrint(const Files& entries) const {
         }
         else {
             cout << left << setw(w_usrname) << info->d_name;
+        }
+        if ( ++count == nfiles ) {
+            count = 0;
+            cout << endl;
+        }
+        else cout << ' ';
+    }
+    if ( count ) cout << endl;
+    return returnStat;
+}
+
+
+/********************
+ * helper functions *
+ *******************/
+bool Printer::setFlag(const char& c) {
+    lsFlag f;
+    if ( (f = this->getFlag(c)) == UNDEF_FLAG ) {
+        _illegal = true;
+        return false;
+    }
+    else {
+        _flags |= f;
+        return true;
+    }
+}
+
+bool Printer::checkFlag(const lsFlag& f) const {
+    return (_flags & f) == f;
+}
+
+bool Printer::illegal() const {
+    return _illegal;
+}
+
+void Printer::setPrintDirName(bool b) {
+    _pDirName = b;
+}
+
+lsFlag Printer::getFlag(const char& c) const {
+    int code = 1 << (int(c) - int('a'));
+    lsFlag f = lsFlag(code);
+    if ( f == HUMAN_READABLE ||
+         f == LIST_ALL       ||
+         f == LIST_XATTR     ||
+         f == LIST_LONG) {
+        return f;
+    }
+    else return UNDEF_FLAG;
+}
+
+}
+
+namespace sftp
+{
+
+// TODO: print colorful format for different entry types
+// TODO: -@ not yet implemented
+bool Printer::print(const dirCntMap& dirContent) const {
+    size_t count      = 0;
+    bool   returnStat = true;
+    for (const auto& pair : dirContent) {
+        const auto& dirName = pair.first;
+        const auto& entries = pair.second;
+        if ( _pDirName ) cout << dirName << ":" << endl;
+
+        // decide print method
+        if ( this->checkFlag(LIST_LONG) ) {
+            returnStat = returnStat && this->longPrint(dirName.c_str(), entries);
+        }
+        else {
+            returnStat = returnStat && this->columnPrint(entries);
+        }
+
+        if ( ++count != dirContent.size() ) cout << endl << endl;
+    }
+    return returnStat;
+}
+
+
+/**************
+ * long print *
+ *************/
+// TODO longname is in 'ls -l' format
+//      to support -a/h split the longnames with ' ' and process them
+bool Printer::longPrint(const char* dirName, const Files& entries) const {
+    bool returnStat = true;
+    bool PRINT_ALL  = this->checkFlag(LIST_ALL);
+    bool PRINT_HUM  = this->checkFlag(HUMAN_READABLE);
+
+    for (const auto& attr : entries) cout << attr->longname << endl;
+    return true;
+
+}
+
+
+/****************
+ * column print *
+ ***************/
+// TODO check for file type in other method
+//      the format is weird
+bool Printer::columnPrint(const Files& entries) const {
+    bool returnStat = true;
+    bool PRINT_ALL  = this->checkFlag(LIST_ALL);
+
+    // word length for each property
+    int w_usrname = 0;
+
+    // terminal width in char
+    int twidth = UTIL::getTermWidth();
+
+    // max length of filename
+    for (size_t i = 0; i < entries.size(); ++i) {
+        const auto& info = entries[i];
+        if ( !PRINT_ALL && info->name[0] == '.') continue;
+        w_usrname = std::max(w_usrname, UTIL::wLength(info->name));
+    }
+
+    // max number of files in one line
+    // add an extra space for 'space'
+    w_usrname += 2;
+    int nfiles = twidth / w_usrname;
+
+    // print
+    int count = 0;
+    for (size_t i = 0; i < entries.size(); ++i) {
+        const auto& info = entries[i];
+        if ( !PRINT_ALL && info->name[0] == '.') continue;
+
+        if ( _colorful && info->type == DT_DIR ) {
+            cout << BOLD_CYAN;
+            cout << left << setw(w_usrname-1) << info->name;
+            cout << COLOR_RESET;
+        }
+        else if ( _colorful && info->type == DT_LNK ) {
+            cout << NORMAL_MAGENTA;
+            cout << left << setw(w_usrname-1) << info->name;
+            cout << COLOR_RESET;
+        }
+        else {
+            cout << left << setw(w_usrname-1) << info->name;
         }
         if ( ++count == nfiles ) {
             count = 0;
