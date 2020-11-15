@@ -209,7 +209,6 @@ namespace sftp
 {
 
 // TODO: print colorful format for different entry types
-// TODO: -@ not yet implemented
 bool Printer::print(const dirCntMap& dirContent) const {
     size_t count      = 0;
     bool   returnStat = true;
