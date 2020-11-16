@@ -38,6 +38,11 @@ libs:
 		$(MAKE) -C src/$$pkg -f makefile --no-print-directory PKGNAME=$$pkg ASAN=$(ASAN); \
 	done
 
+.PHONY: cppcheck
+cppcheck:
+	@cppcheck . --enable=all --std=c++14 2> check.txt
+	@$(ECHO) "\033[33mcppcheck finished, see results in ./check.txt\033[30m"
+
 .PHONY: test
 test:
 	@for pkg in $(PKGS); \

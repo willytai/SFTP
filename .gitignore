@@ -5,7 +5,7 @@ include/*
 lib/*.a
 example*
 hw2*
-libssh*
+check.txt
 bin*
 mySFTP
 tags
