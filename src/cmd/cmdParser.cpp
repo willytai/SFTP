@@ -189,7 +189,7 @@ cmdStat cmdParser::interpretateAndExecute() const {
     // split _buf into two parts
     std::vector<std::string> tokens;
     size_t buflen = _bufEnd - _buf;
-    char* sub = (char*)malloc(buflen*sizeof(char));
+    char* sub = (char*)malloc((buflen+1)*sizeof(char));
     UTIL::substr( _buf, sub, 0, buflen );
     UTIL::parseTokens( sub, tokens, ' ', 2 );
     free(sub);
