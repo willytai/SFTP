@@ -11,4 +11,4 @@ target: $(TARGET)
 
 $(TARGET): $(COBJS) $(LIBCHECKPOINT)
 	@$(ECHO) "> building: $(EXEC) ..."
-	@$(CXX) $(CFLAGS) $(WFLAGS) $(DPNFILAG) $(DPNLFLAG) $(COBJS) -o $@ $(INCLIB)
+	@$(CXX) $(CFLAGS) $(WFLAGS) $(FFLAGS) $(DPNFILAG) $(DPNLFLAG) $(COBJS) -o $@ $(INCLIB)

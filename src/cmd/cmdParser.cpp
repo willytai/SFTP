@@ -345,7 +345,7 @@ void cmdParser::deleteChar() {
 // complete commands or file paths or just tabs
 void cmdParser::autoComplete() {
     size_t buflen = _bufPtr - _buf;
-    char* buf     = (char*)malloc(buflen*sizeof(char));
+    char* buf     = (char*)malloc((buflen+1)*sizeof(char));
     std::vector<std::string> tokens;
     UTIL::substr( _buf, buf, 0, buflen );
     UTIL::parseTokens(buf, tokens);

@@ -1,5 +1,3 @@
-STATIC ?= false
-
 ECHO      = /bin/echo
 EXEC      = mySFTP
 SRCLIBDIR = lib#                                       -- lib dir for source code
@@ -10,6 +8,8 @@ SRCLIBS = $(addsuffix .a, $(addprefix lib, $(PKGS)))#  -- the actual libs from s
 EXTPKG  = ssh#                                         -- external libs required for source code
 ALLPKGS = $(PKGS) $(EXTPKG)#                           -- all libs for source code
 INCLIB  = $(addprefix -l, $(ALLPKGS))#                 -- -l flags for complier
+
+ASAN   ?= false
 
 all: dir main
 
@@ -27,7 +27,7 @@ dir:
 
 main: libs
 	@$(ECHO) "Checking main ..."
-	@$(MAKE) -C src/main -f makefile --no-print-directory INCLIB="$(INCLIB)" EXEC=$(EXEC) STATIC=$(STATIC)
+	@$(MAKE) -C src/main -f makefile --no-print-directory INCLIB="$(INCLIB)" EXEC=$(EXEC) ASAN=$(ASAN)
 	@ln -fs bin/$(EXEC) .
 
 
@@ -35,7 +35,7 @@ libs:
 	@for pkg in $(PKGS); \
 	do \
 		$(ECHO) "Checking $$pkg ..."; \
-		$(MAKE) -C src/$$pkg -f makefile --no-print-directory PKGNAME=$$pkg; \
+		$(MAKE) -C src/$$pkg -f makefile --no-print-directory PKGNAME=$$pkg ASAN=$(ASAN); \
 	done
 
 .PHONY: test
