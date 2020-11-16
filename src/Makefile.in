@@ -28,7 +28,7 @@ WFLAGS = -Wall -Wextra -pedantic-errors -Wconversion# -Werror
 FFLAGS =
 
 ifeq ($(ASAN), true)
-FFLAGS += -O1 -g -fsanitize=address -fsanitize-recover=address -fno-omit-frame-pointer -fno-optimize-sibling-calls -DASAN
+FFLAGS += -O1 -g -fsanitize=address -fsanitize-recover=address -fsanitize-address-use-after-scope -fno-omit-frame-pointer -fno-optimize-sibling-calls -DASAN
 ASAN_OPTIONS=detect_leaks=1
 endif
 
