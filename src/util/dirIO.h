@@ -4,7 +4,9 @@
 #include <stdio.h>
 #include <sys/types.h>
 #include <sys/xattr.h>
+#ifdef __APPLE__
 #include <sys/acl.h>
+#endif
 #include <sys/stat.h>
 #include <dirent.h>
 #include <grp.h>

@@ -3,7 +3,7 @@ EXEC      = mySFTP
 SRCLIBDIR = lib#                                       -- lib dir for source code
 DIRS      = bin include $(SRCLIBDIR)
 
-PKGS    = util sftp cmd#                               -- packages from source code
+PKGS    = cmd util sftp#                               -- packages from source code
 SRCLIBS = $(addsuffix .a, $(addprefix lib, $(PKGS)))#  -- the actual libs from source code
 EXTPKG  = ssh#                                         -- external libs required for source code
 ALLPKGS = $(PKGS) $(EXTPKG)#                           -- all libs for source code
@@ -64,6 +64,22 @@ runtest:
 	do \
 		$(MAKE) -C test/$$pkg -f makefile --no-print-directory PKGNAME=$$pkg run; \
 	done
+
+cleanall:
+	@for pkg in $(PKGS); \
+	do \
+		$(ECHO) "Cleaning $$pkg ..."; \
+		$(MAKE) -C src/$$pkg -f makefile --no-print-directory PKGNAME=$$pkg cleanall; \
+	done
+	@$(ECHO) "Cleaning main ..."
+	@$(MAKE) -C src/main -f makefile --no-print-directory cleanall;
+	@for slib in $(SRCLIBS); \
+	do \
+		$(ECHO) "Removing $$slib ..."; \
+		rm -rf $(SRCLIBDIR)/$$slib; \
+	done
+	@$(ECHO) "Removing $(EXEC) ..."
+	@rm -f $(EXEC) bin/$(EXEC)
 
 clean:
 	@for pkg in $(PKGS); \

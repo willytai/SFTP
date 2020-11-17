@@ -62,6 +62,12 @@ extheader: .extheader.mak
 		$(ECHO) "	@cd $(EXTDIR); ln -fs ../src/$(PKGNAME)/$$hdr ./" >> $@; \
 	done
 
+.PHONY: cleanll
+cleanall:
+	@rm -f $(COBJS)
+	@$(ECHO) "Removing dependency rules ... "
+	@rm .depend.mak .extheader.mak
+
 
 .PHONY: clean
 clean:

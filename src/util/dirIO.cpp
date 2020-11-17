@@ -121,7 +121,11 @@ bool getEntryStat(const char* dirName, const char* filename, struct EntryStat* e
     getTypeChar     (statbuf.st_mode, entryStat->en_type);
     getPermStr      (statbuf.st_mode, entryStat->en_perm);
     getXattrChar    (filename,        entryStat->en_xattr);
+#ifdef __APPLE__
     getTimeStampStr (statbuf.st_mtimespec, entryStat->en_mtime);
+#else
+    getTimeStampStr (statbuf.st_mtim, entryStat->en_mtime);
+#endif
     entryStat->en_usrname = getUnameByUid( statbuf.st_uid );
     entryStat->en_grname  = getGnameByGid( statbuf.st_gid );
     entryStat->en_nlink   = statbuf.st_nlink;
@@ -158,9 +162,13 @@ void getTypeChar(const mode_t& mode, char& tchar) {
 }
 
 void getXattrChar(const char* filename, char& xchar, char* namebuf, size_t size) {
+#ifdef __APPLE__
     if ( listxattr(filename, namebuf, size, XATTR_NOFOLLOW) > 0) xchar = '@';
     else if ( acl_get_link_np(filename, ACL_TYPE_EXTENDED) != NULL ) xchar = '+';
     else xchar = '.';
+#else
+    xchar = ' ';
+#endif
 }
 
 void getTimeStampStr(const struct timespec& mtime, char* mtimeStr) {
