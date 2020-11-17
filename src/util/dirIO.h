@@ -46,9 +46,9 @@ void   getPermStr   (const mode_t& mode, char* modeStr);
 void   getTypeChar  (const mode_t& mode, char& tchar);
 void   getXattrChar (const char* filename, char& xchar, char* namebuf = NULL, size_t size = 0);
 void   getTimeStampStr(const struct timespec& mtime, char* mtimeStr);
-void   getUnameByUid(const uid_t& uid, const char**);
-void   getGnameByGid(const gid_t& gid, const char**);
 char*  readLink     (const char*, const char*);
+const char* getUnameByUid(const uid_t& uid);
+const char* getGnameByGid(const gid_t& gid);
 
 }
 

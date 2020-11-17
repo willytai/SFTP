@@ -34,9 +34,11 @@ using std::istream;
 #define COLOR_RESET     "\033[0m"
 
 
-// for prompt printing
+// for prompt printing and listing
 #define CWD_BUF_MAX 256
 #define CWD_DEPTH_MAX 3
+#define UNAME_BUF_MAX 32
+#define GNAME_BUF_MAX UNAME_BUF_MAX
 
 #define ESCAPE_CHAR '\\'
 #define SPACE_CHAR ' '

@@ -122,8 +122,8 @@ bool getEntryStat(const char* dirName, const char* filename, struct EntryStat* e
     getPermStr      (statbuf.st_mode, entryStat->en_perm);
     getXattrChar    (filename,        entryStat->en_xattr);
     getTimeStampStr (statbuf.st_mtimespec, entryStat->en_mtime);
-    getUnameByUid   (statbuf.st_uid, &(entryStat->en_usrname));
-    getGnameByGid   (statbuf.st_gid, &(entryStat->en_grname));
+    entryStat->en_usrname = getUnameByUid( statbuf.st_uid );
+    entryStat->en_grname  = getGnameByGid( statbuf.st_gid );
     entryStat->en_nlink   = statbuf.st_nlink;
     entryStat->en_size    = statbuf.st_size;
     entryStat->en_name    = filename;
@@ -186,12 +186,16 @@ void getTimeStampStr(const struct timespec& mtime, char* mtimeStr) {
     snprintf(mtimeStr, 13, "%s %02d %02d:%02d", month, t.tm_mday, t.tm_hour, t.tm_min);
 }
 
-void getUnameByUid(const uid_t& uid, const char** target) {
-    *target = getpwuid(uid)->pw_name;
+static char unamebuf[UNAME_BUF_MAX];
+const char* getUnameByUid(const uid_t& uid) {
+    strcpy(unamebuf, getpwuid(uid)->pw_name);
+    return unamebuf;
 }
 
-void getGnameByGid(const gid_t& gid, const char** target) {
-    *target = getgrgid(gid)->gr_name;
+static char gnamebuf[GNAME_BUF_MAX];
+const char* getGnameByGid(const gid_t& gid) {
+    strcpy(gnamebuf, getgrgid(gid)->gr_name);
+    return gnamebuf;
 }
 
 static char linkbuf[1024];
