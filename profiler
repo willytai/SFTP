@@ -1,0 +1,5 @@
+LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libprofiler.so \
+CPUPROFILE=./prof/prof.out \
+CPUPROFILE_FREQUENCY=1000000 \
+./bin/mySFTP < ./prof/profiler.in > /dev/null
+google-pprof --svg ./bin/mySFTP ./prof/prof.out > ./prof/prof.out.svg

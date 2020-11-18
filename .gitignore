@@ -1,11 +1,24 @@
+# with extension
 *.*.swp
-*.o
 *.DS_store
-include/*
+*.o
+*.svg
+*.out
 lib/*.a
-example*
-hw2*
-check.txt
-bin*
+
+# tags
+src/tags
+
+# dir
+include/*
+bin/*
+test/*/bin/*
+example/*
+hw2/*
+
+# exec
 mySFTP
-tags
+
+# special files
+check.txt
+TODO.txt

@@ -10,6 +10,11 @@ ALLPKGS = $(PKGS) $(EXTPKG)#                           -- all libs for source co
 INCLIB  = $(addprefix -l, $(ALLPKGS))#                 -- -l flags for complier
 
 ASAN   ?= false
+PROFILER= false
+
+ifeq ($(PROFILER), true)
+EXTPKG += profiler
+endif
 
 all: dir main
 
@@ -35,7 +40,7 @@ libs:
 	@for pkg in $(PKGS); \
 	do \
 		$(ECHO) "Checking $$pkg ..."; \
-		$(MAKE) -C src/$$pkg -f makefile --no-print-directory PKGNAME=$$pkg ASAN=$(ASAN); \
+		$(MAKE) -C src/$$pkg -f makefile --no-print-directory PKGNAME=$$pkg ASAN=$(ASAN) PROFILER=$(PROFILER); \
 	done
 
 .PHONY: cppcheck
