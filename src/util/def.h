@@ -40,6 +40,9 @@ using std::istream;
 #define UNAME_BUF_MAX 32
 #define GNAME_BUF_MAX UNAME_BUF_MAX
 
+// An extra type for executable files
+#define DT_EXEC 87
+
 #define ESCAPE_CHAR '\\'
 #define SPACE_CHAR ' '
 #define WILDCARD_CHAR '*'

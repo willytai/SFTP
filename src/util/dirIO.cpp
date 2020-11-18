@@ -9,6 +9,7 @@ namespace UTIL
 char EntryStat::TYPE_DIR = 'd';
 char EntryStat::TYPE_LNK = 'l';
 char EntryStat::TYPE_REG = 'r';
+char EntryStat::TYPE_EXEC = 'x';
 
 // check for escape characters in strings, returns a new string without them
 char* rmEscChar(const char* str) {

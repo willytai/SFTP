@@ -73,9 +73,6 @@ sftpStat sftpSession::initSSHSession() {
         errMgr.setSftpErr( ssh_get_error(_ssh_session) );
         return SFTP_SSH_INIT_FAILED;
     }
-    else {
-        printf("ssh session created\n");
-    }
     ssh_options_set(_ssh_session, SSH_OPTIONS_HOST, _hostIP);
     ssh_options_set(_ssh_session, SSH_OPTIONS_LOG_VERBOSITY, &_verbosity);
     ssh_options_set(_ssh_session, SSH_OPTIONS_USER, _usr);
@@ -89,10 +86,7 @@ sftpStat sftpSession::connectSSH() {
         errMgr.setSftpErr( _hostIP, ssh_get_error(_ssh_session) );
         return SFTP_SSH_CONNECTION_DENIED;
     }
-    else {
-        printf("connection established\n");
-        return SFTP_OK;
-    }
+    return SFTP_OK;
 }
 
 sftpStat sftpSession::verifyKnownHost() {
@@ -115,7 +109,6 @@ sftpStat sftpSession::verifyKnownHost() {
     stat = ssh_session_is_known_server(_ssh_session);
     switch (stat) {
         case SSH_KNOWN_HOSTS_OK:
-            printf("Host recognized\n");
             break;
 
         case SSH_KNOWN_HOSTS_CHANGED:
@@ -223,7 +216,6 @@ sftpStat sftpSession::initSFTP() {
         sftp_free(_sftp_session);
         return SFTP_SESS_INIT_FAILED;
     }
-    printf("sftp session established\n");
 
     // store the absolute path of $HOME and set _pwd to _home;
     char* chome = sftp_canonicalize_path(_sftp_session, "./");
@@ -345,6 +337,12 @@ sftpStat sftpSession::readDir(const char* dir, std::vector<sftp_attributes>& con
 
     sftp_attributes curattr;
     while ( (curattr = sftp_readdir( _sftp_session, curdir )) != NULL ) {
+        // don't know why sftp_readdir fails to get file type, doing it on my own
+        const char* type_ch_ptr = &(curattr->longname[0]);
+        if ( *type_ch_ptr == 'd' ) curattr->type = DT_DIR;
+        else if ( *type_ch_ptr == 'l' ) curattr->type = DT_LNK;
+        else if ( *(type_ch_ptr+3) == 'x' ) curattr->type = DT_EXEC;
+        else curattr->type = DT_REG;
         container.push_back( curattr );
         // sftp_attributes_free( curattr );
     }

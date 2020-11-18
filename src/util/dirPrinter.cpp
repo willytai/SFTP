@@ -1,5 +1,9 @@
 #include "dirPrinter.h"
+#include "dirIO.h"
 #include "util.h"
+#include <cstddef>
+#include <string>
+#include <vector>
 
 namespace LISTING
 {
@@ -94,11 +98,11 @@ bool Printer::longPrint(const char* dirName, const Files& entries) const {
         if ( _colorful && infoStat.en_type == UTIL::EntryStat::TYPE_DIR ) {
             cout << BOLD_CYAN << infoStat.en_name << COLOR_RESET << endl;
         }
-        else if ( _colorful && infoStat.en_type == 'l' ) {
+        else if ( _colorful && infoStat.en_type == UTIL::EntryStat::TYPE_LNK ) {
             cout << BOLD_MAGENTA << infoStat.en_name << COLOR_RESET;
             cout << " -> " << UTIL::readLink(dirName, infoStat.en_name) << endl;
         }
-        else if ( _colorful && infoStat.en_perm[2] == 'x' ) {
+        else if ( _colorful && infoStat.en_perm[2] == UTIL::EntryStat::TYPE_EXEC ) {
             cout << NORMAL_RED << infoStat.en_name << COLOR_RESET << endl;
         }
         else {
@@ -131,7 +135,7 @@ bool Printer::columnPrint(const Files& entries) const {
 
     // max number of files in one line
     // add an extra space for 'space'
-    w_usrname += 1;
+    w_usrname += 2;
     int nfiles = twidth / w_usrname;
 
     // print
@@ -142,16 +146,16 @@ bool Printer::columnPrint(const Files& entries) const {
 
         if ( _colorful && info->d_type == DT_DIR ) {
             cout << BOLD_CYAN;
-            cout << left << setw(w_usrname) << info->d_name;
+            cout << left << setw(w_usrname-1) << info->d_name;
             cout << COLOR_RESET;
         }
         else if ( _colorful && info->d_type == DT_LNK ) {
             cout << NORMAL_MAGENTA;
-            cout << left << setw(w_usrname) << info->d_name;
+            cout << left << setw(w_usrname-1) << info->d_name;
             cout << COLOR_RESET;
         }
         else {
-            cout << left << setw(w_usrname) << info->d_name;
+            cout << left << setw(w_usrname-1) << info->d_name;
         }
         if ( ++count == nfiles ) {
             count = 0;
@@ -208,7 +212,6 @@ lsFlag Printer::getFlag(const char& c) const {
 namespace sftp
 {
 
-// TODO: print colorful format for different entry types
 bool Printer::print(const dirCntMap& dirContent) const {
     size_t count      = 0;
     bool   returnStat = true;
@@ -234,24 +237,66 @@ bool Printer::print(const dirCntMap& dirContent) const {
 /**************
  * long print *
  *************/
-// TODO longname is in 'ls -l' format
-//      to support -a/h split the longnames with ' ' and process them
 bool Printer::longPrint(const char* dirName, const Files& entries) const {
     bool returnStat = true;
     bool PRINT_ALL  = this->checkFlag(LIST_ALL);
     bool PRINT_HUM  = this->checkFlag(HUMAN_READABLE);
 
-    for (const auto& attr : entries) cout << attr->longname << endl;
-    return true;
+    int w_nlink = 0, w_usrname = 0, w_grname = 0, w_size = 0;
 
+    std::vector<std::vector<std::string> > vecToken;
+    vecToken.resize( entries.size() );
+    for (size_t i = 0; i < entries.size(); ++i) {
+        UTIL::parseTokens( entries[i]->longname, vecToken[i] );
+        w_nlink    = std::max(w_nlink,   (int)vecToken[i][1].size());
+        w_usrname  = std::max(w_usrname, (int)vecToken[i][2].size());
+        w_grname   = std::max(w_grname,  (int)vecToken[i][3].size());
+
+        if ( PRINT_HUM ) {
+            w_size = 4;
+            double size_h = (double)std::stoi(vecToken[i][4]);
+            char   unit;
+            UTIL::toHuman(&size_h, &unit);
+            char* tmp = (char*)malloc(4*sizeof(char));
+            snprintf(tmp, 4, "%.f%c", size_h, unit);
+            vecToken[i][4] = std::string(tmp);
+            free(tmp);
+        }
+        else {
+            w_size = std::max(w_size, UTIL::wLength(vecToken[i][4].c_str()));
+        }
+    }
+
+    for (const auto& longname : vecToken) {
+        if ( !PRINT_ALL && longname[8][0] == '.' ) continue;
+        cout << longname[0] << ' '
+             << right << setw(w_nlink)   << longname[1] << ' '
+             << right << setw(w_usrname) << longname[2] << ' '
+             << right << setw(w_grname)  << longname[3] << ' '
+             << right << setw(w_size)    << longname[4] << ' '
+             << right << setw(3)         << longname[5] << ' '
+             << right << setw(2)         << longname[6] << ' '
+             << right << setw(5)         << longname[7] << ' ';
+        if ( _colorful && longname[0][0] == UTIL::EntryStat::TYPE_DIR ) {
+            cout << BOLD_CYAN << longname[8] << COLOR_RESET << endl;
+        }
+        else if ( _colorful && longname[0][0] == UTIL::EntryStat::TYPE_LNK ) {
+            cout << BOLD_MAGENTA << longname[8] << COLOR_RESET << endl;
+        }
+        else if ( _colorful && longname[0][3] == UTIL::EntryStat::TYPE_EXEC ) {
+            cout << NORMAL_RED << longname[8] << COLOR_RESET << endl;
+        }
+        else {
+            cout << longname[8] << endl;
+        }
+    }
+    return returnStat;
 }
 
 
 /****************
  * column print *
  ***************/
-// TODO check for file type in other method
-//      the format is weird
 bool Printer::columnPrint(const Files& entries) const {
     bool returnStat = true;
     bool PRINT_ALL  = this->checkFlag(LIST_ALL);
@@ -287,6 +332,11 @@ bool Printer::columnPrint(const Files& entries) const {
         }
         else if ( _colorful && info->type == DT_LNK ) {
             cout << NORMAL_MAGENTA;
+            cout << left << setw(w_usrname-1) << info->name;
+            cout << COLOR_RESET;
+        }
+        else if ( _colorful && info->type == DT_EXEC ) {
+            cout << NORMAL_RED;
             cout << left << setw(w_usrname-1) << info->name;
             cout << COLOR_RESET;
         }
