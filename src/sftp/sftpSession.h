@@ -6,10 +6,10 @@
 #include <string.h>
 #include <libssh/libssh.h>
 #include <libssh/sftp.h>
-#include <dirent.h>
 #include <string>
 #include <vector>
 #include "def.h"
+#include "dirIO.h"
 
 namespace sftp
 {

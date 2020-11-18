@@ -339,9 +339,9 @@ sftpStat sftpSession::readDir(const char* dir, std::vector<sftp_attributes>& con
     while ( (curattr = sftp_readdir( _sftp_session, curdir )) != NULL ) {
         // don't know why sftp_readdir fails to get file type, doing it on my own
         const char* type_ch_ptr = &(curattr->longname[0]);
-        if ( *type_ch_ptr == 'd' ) curattr->type = DT_DIR;
-        else if ( *type_ch_ptr == 'l' ) curattr->type = DT_LNK;
-        else if ( *(type_ch_ptr+3) == 'x' ) curattr->type = DT_EXEC;
+        if ( *type_ch_ptr == UTIL::EntryStat::TYPE_DIR ) curattr->type = DT_DIR;
+        else if ( *type_ch_ptr == UTIL::EntryStat::TYPE_LNK ) curattr->type = DT_LNK;
+        else if ( *(type_ch_ptr+3) == UTIL::EntryStat::TYPE_EXEC ) curattr->type = DT_EXEC;
         else curattr->type = DT_REG;
         container.push_back( curattr );
         // sftp_attributes_free( curattr );
