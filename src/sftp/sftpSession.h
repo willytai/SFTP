@@ -47,7 +47,7 @@ public:
                 const char* user,
                 const char* psswd,
                 const char* port = NULL,
-                int v = 0);
+                int v = SSH_LOG_PROTOCOL);
     ~sftpSession();
 
     void setUsrName(const char* u, size_t l) { _usr    = (char*)malloc(l*sizeof(char)); strcpy(_usr,    u); }

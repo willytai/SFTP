@@ -29,6 +29,8 @@ static void reset_termio() {
 sftpSession::sftpSession() {
     _usr = _hostIP = _psswd = _port = NULL;
     _pwd.clear();
+    this->setVerbose(SSH_LOG_NOLOG);
+    // this->setVerbose(SSH_LOG_WARNING);
 }
 
 sftpSession::sftpSession(const char* hostIP, const char* user, const char* psswd, const char* port, int v) {
@@ -37,7 +39,6 @@ sftpSession::sftpSession(const char* hostIP, const char* user, const char* psswd
     this->setPsswd  (psswd,  strlen(psswd)+1 );
     this->setPort   (port,   strlen(port)+1 );
     this->setVerbose(v);
-    // this->setVerbose(SSH_LOG_PROTOCOL);
     _pwd.clear();
 }
 
