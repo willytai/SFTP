@@ -376,11 +376,7 @@ void sftpSession::seterrno(int code) const {
         case SSH_FX_INVALID_HANDLE:      errno = EBADF; return;
         case SSH_FX_EOF:                 errno = EBADF; return;
         case SSH_FX_BAD_MESSAGE:         errno = EBADMSG; return;
-#ifdef __APPLE__
-        case SSH_FX_FAILURE:             errno = EBADRPC; return;
-#else
-        case SSH_FX_FAILURE:             errno = EBADRQC; return;
-#endif
+        case SSH_FX_FAILURE:             errno = EOPNOTSUPP; return;
         default: return;
     }
 }
