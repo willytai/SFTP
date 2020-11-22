@@ -4,6 +4,10 @@
 #include "cmdParser.h"
 #include "util.h"
 
+
+// TODO SUPPORT string options instead of char options only
+//      i.e. make --recursive works
+
 typedef std::vector<std::string> vecstr;
 
 /*************/

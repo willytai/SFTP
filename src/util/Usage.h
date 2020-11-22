@@ -18,7 +18,7 @@ struct Usage
 #ifdef __APPLE__
         return usg.ru_maxrss / (double)(1<<20); // bytes
 #else
-        return usg.ru_maxrss / (double)(1<<10); //Kbytes
+        return usg.ru_maxrss / (double)(1<<10); // Kbytes
 #endif
     }
 };
