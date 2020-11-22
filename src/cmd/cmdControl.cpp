@@ -1,4 +1,6 @@
 #include "cmdClass.h"
+#include "Usage.h"
+#include <iomanip>
 
 /***********/
 /* quitCmd */
@@ -92,5 +94,28 @@ void exitCmd::usage() const {
 }
 
 void exitCmd::help() const {
+    return;
+}
+
+/************/
+/* usageCmd */
+/************/
+cmdStat usageCmd::execute(const std::string& option) const {
+    char* buf = (char*)malloc(16*sizeof(char));
+    snprintf( buf, 16, "%.2f MB", Usage::getMem() );
+    cout << "+-------------+" << endl;
+    cout << "| Peak Memory |" << endl;
+    cout << "+-------------+" << endl;
+    cout << "| " << left << setw(11) << buf << " |"<< endl;
+    cout << "+-------------+" << endl;
+    free( buf );
+    return CMD_DONE;
+}
+
+void usageCmd::usage() const {
+    return;
+}
+
+void usageCmd::help() const {
     return;
 }

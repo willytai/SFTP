@@ -44,6 +44,7 @@ cmdClassServer(getCmd);
 /***********************/
 cmdClassLocal(quitCmd);
 cmdClassLocal(exitCmd);
+cmdClassLocal(usageCmd);
 cmdClassLocal(clearCmd);
 cmdClassLocal(helpCmd);
 cmdClassLocal(remoteCmd);

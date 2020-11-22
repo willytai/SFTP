@@ -14,6 +14,7 @@ void cmdParser::regCmd() {
          this->regEachCmd("remote", 6, new remoteCmd())           == CMD_REG_FAIL ||
          this->regEachCmd("local",  5, new localCmd())            == CMD_REG_FAIL ||
          this->regEachCmd("exit",   4, new exitCmd())             == CMD_REG_FAIL ||
+         this->regEachCmd("usage",  5, new usageCmd())            == CMD_REG_FAIL ||
          this->regEachCmd("ls",     2, new lsCmd(&_sftp_sess))    == CMD_REG_FAIL ||
          this->regEachCmd("cd",     2, new cdCmd(&_sftp_sess))    == CMD_REG_FAIL ||
          this->regEachCmd("mkdir",  5, new mkdirCmd(&_sftp_sess)) == CMD_REG_FAIL ||

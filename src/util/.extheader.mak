@@ -1,4 +1,6 @@
-utilLNK: ../../include/def.h ../../include/dirIO.h ../../include/dirPrinter.h ../../include/util.h 
+utilLNK: ../../include/Usage.h ../../include/def.h ../../include/dirIO.h ../../include/dirPrinter.h ../../include/util.h 
+../../include/Usage.h: Usage.h
+	@cd ../../include; ln -fs ../src/util/Usage.h ./
 ../../include/def.h: def.h
 	@cd ../../include; ln -fs ../src/util/def.h ./
 ../../include/dirIO.h: dirIO.h
