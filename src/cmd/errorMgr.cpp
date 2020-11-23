@@ -48,6 +48,9 @@ bool errorMgr::handle(const sftp::sftpStat& errCode) {
         case sftp::SFTP_VERIFY_UPDATE_KNOWN_HOST_ERROR: this->sftpVrfyUpdateError();        break;
         case sftp::SFTP_VERIFY_KNOWN_HOST_ERROR:        this->sftpVrfyKnownHostError();     break;
         case sftp::SFTP_READDIR_ERROR:                  this->sftpReaddirError();           break;
+        case sftp::SFTP_READFILE_ERROR:                 this->sftpReadfileError();          break;
+        case sftp::SFTP_CLOSEFILE_ERROR:                this->sftpClosefileError();         break;
+        case sftp::SFTP_GET_ERROR:                      this->sftpGetError();               break;
         default: return true;
     }
     return false;
@@ -210,5 +213,23 @@ void errorMgr::sftpVrfyKnownHostError() const {
 void errorMgr::sftpReaddirError() const {
     if ( _colorful ) cerr << BOLD_RED;
     cerr << "SFTP Read Directory Error: " << ErrorSftpMsg << endl;
+    if ( _colorful ) cerr << COLOR_RESET;
+}
+
+void errorMgr::sftpReadfileError() const {
+    if ( _colorful ) cerr << BOLD_RED;
+    cerr << "SFTP Read File Error: " << ErrorSftpMsg << endl;
+    if ( _colorful ) cerr << COLOR_RESET;
+}
+
+void errorMgr::sftpClosefileError() const {
+    if ( _colorful ) cerr << BOLD_RED;
+    cerr << "SFTP can't close the remote file: " << ErrorSftpMsg << endl;
+    if ( _colorful ) cerr << COLOR_RESET;
+}
+
+void errorMgr::sftpGetError() const {
+    if ( _colorful ) cerr << BOLD_RED;
+    cerr << "SFTP error while reading file: " << ErrorSftpMsg << endl;
     if ( _colorful ) cerr << COLOR_RESET;
 }

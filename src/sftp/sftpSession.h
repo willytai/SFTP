@@ -36,6 +36,9 @@ enum sftpStat
     SFTP_CD_ERROR = 16,
 
     SFTP_READDIR_ERROR,
+    SFTP_READFILE_ERROR,
+    SFTP_CLOSEFILE_ERROR,
+    SFTP_GET_ERROR,
 };
 
 class sftpSession
@@ -64,7 +67,9 @@ public:
     sftpStat    readDir(const std::string&, std::vector<std::pair<std::string, bool> >&) const;
     sftpStat    readDir(const char*, std::vector<sftp_attributes>&) const;
     sftpStat    get(const std::vector<std::string>&) const;
+    sftpStat    get(const std::string&) const;
     sftpStat    get_recursive(const std::vector<std::string>&) const;
+    sftpStat    get_recursive(const std::string&) const;
 
 private:
     sftpStat initSSHSession();

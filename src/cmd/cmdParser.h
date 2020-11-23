@@ -180,6 +180,9 @@ private:
     void sftpVrfyUpdateError() const;
     void sftpVrfyKnownHostError() const;
     void sftpReaddirError() const;
+    void sftpReadfileError() const;
+    void sftpClosefileError() const;
+    void sftpGetError() const;
 
 private:
     // colorful print or not
