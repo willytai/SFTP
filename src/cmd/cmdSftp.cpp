@@ -35,9 +35,17 @@ cmdStat getCmd::execute(const std::string& option) const {
         return CMD_OPT_ILLEGAL;
     }
 
-    (*_sftp_sess_ptr)->get( stargets );
-    (*_sftp_sess_ptr)->get_recursive( rtargets );
-    return CMD_DONE;
+    cmdStat returnStat = CMD_DONE;
+    if ( (*_sftp_sess_ptr)->get( stargets ) != sftp::SFTP_OK ) {
+        // set errorno properly in the get() function of sftpSession
+        errMgr.setErrCmd("get");
+        returnStat = CMD_EXEC_ERROR;
+    }
+    if ( (*_sftp_sess_ptr)->get_recursive( rtargets ) != sftp::SFTP_OK ) {
+        errMgr.setErrCmd("get");
+        returnStat = CMD_EXEC_ERROR;
+    }
+    return returnStat;
 }
 
 void getCmd::usage() const {

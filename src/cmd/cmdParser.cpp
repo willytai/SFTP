@@ -64,10 +64,10 @@ argStat cmdParser::parseArgs(int argc, char** argv) {
         #ifdef DEV
         _sftp_sess = new sftp::sftpSession();
         _sftp_sess->setUsrName( "willytai43", 11 );
-        // _sftp_sess->setHostIP ( "140.112.48.79", 14 );
-        // _sftp_sess->setPsswd  ( "09855184", 9 );
-        _sftp_sess->setHostIP ( "140.112.48.77", 14 );
-        _sftp_sess->setPsswd  ( "00000000", 9 );
+        _sftp_sess->setHostIP ( "140.112.48.79", 14 );
+        _sftp_sess->setPsswd  ( "09855184", 9 );
+        // _sftp_sess->setHostIP ( "140.112.48.77", 14 );
+        // _sftp_sess->setPsswd  ( "00000000", 9 );
         return ARG_PARSE_DONE;
         #endif
         return ARG_PARSE_ARG_MISSING;
