@@ -5,6 +5,7 @@
 #include <ios>
 #include <iostream>
 #include <fstream>
+#include "Usage.h"
 
 using std::cin;
 using std::cerr;

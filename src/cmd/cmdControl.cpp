@@ -102,7 +102,7 @@ void exitCmd::help() const {
 /************/
 cmdStat usageCmd::execute(const std::string& option) const {
     char* buf = (char*)malloc(16*sizeof(char));
-    snprintf( buf, 16, "%.2f MB", Usage::getMem() );
+    snprintf( buf, 16, "%.2f MB", SysUsage::getMem() );
     cout << "+-------------+" << endl;
     cout << "| Peak Memory |" << endl;
     cout << "+-------------+" << endl;
