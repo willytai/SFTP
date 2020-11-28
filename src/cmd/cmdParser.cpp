@@ -2,6 +2,7 @@
 #include "cmdCharDef.h"
 #include "util.h"
 #include "dirIO.h"
+#include "Usage.h"
 #include <cassert>
 #include <sstream>
 #include <string>
@@ -63,11 +64,11 @@ argStat cmdParser::parseArgs(int argc, char** argv) {
     if ( argc < 2 ) {
         #ifdef DEV
         _sftp_sess = new sftp::sftpSession();
-        _sftp_sess->setUsrName( "willytai43", 11 );
-        _sftp_sess->setHostIP ( "140.112.48.79", 14 );
-        _sftp_sess->setPsswd  ( "09855184", 9 );
-        // _sftp_sess->setHostIP ( "140.112.48.77", 14 );
-        // _sftp_sess->setPsswd  ( "00000000", 9 );
+        _sftp_sess->setUsrName( "willytai43", 10 );
+        _sftp_sess->setHostIP ( "140.112.48.79", 13 );
+        _sftp_sess->setPsswd  ( "09855184", 8 );
+        // _sftp_sess->setHostIP ( "140.112.48.77", 13 );
+        // _sftp_sess->setPsswd  ( "00000000", 8 );
         return ARG_PARSE_DONE;
         #endif
         return ARG_PARSE_ARG_MISSING;
@@ -78,8 +79,8 @@ argStat cmdParser::parseArgs(int argc, char** argv) {
         std::vector<std::string> tokens;
         UTIL::parseTokens( argv[1], tokens, '@');
         _sftp_sess = new sftp::sftpSession();
-        _sftp_sess->setUsrName( tokens[0].c_str(), tokens[0].size()+1 );
-        _sftp_sess->setHostIP ( tokens[1].c_str(), tokens[1].size()+1 );
+        _sftp_sess->setUsrName( tokens[0].c_str(), tokens[0].size() );
+        _sftp_sess->setHostIP ( tokens[1].c_str(), tokens[1].size() );
         return ARG_PARSE_DONE;
     }
     #ifdef DEV

@@ -46,10 +46,10 @@ sftpSession::~sftpSession() {
     if ( _sftp_session != NULL ) sftp_free(_sftp_session);
     if ( _ssh_session  != NULL ) ssh_disconnect(_ssh_session);
     if ( _ssh_session  != NULL ) ssh_free(_ssh_session);
-    if ( _hostIP != NULL ) free(_hostIP);
-    if ( _usr    != NULL ) free(_usr);
-    if ( _psswd  != NULL ) free(_psswd);
-    if ( _port   != NULL ) free(_port);
+    if ( _hostIP != NULL ) delete _hostIP;
+    if ( _usr    != NULL ) delete _usr;
+    if ( _psswd  != NULL ) delete _psswd;
+    if ( _port   != NULL ) delete _port;
 }
 
 sftpStat sftpSession::start() {

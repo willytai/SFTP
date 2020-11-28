@@ -4,6 +4,7 @@
 *.o
 *.svg
 *.out
+*.ccls
 lib/*.a
 
 # tags

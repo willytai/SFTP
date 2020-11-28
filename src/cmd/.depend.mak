@@ -34,7 +34,7 @@ cmdParser.o: cmdParser.cpp cmdParser.h ../../include/def.h \
  /usr/local/Cellar/libssh/0.9.5/include/libssh/sftp.h \
  /usr/local/Cellar/libssh/0.9.5/include/libssh/libssh.h \
  ../../include/def.h ../../include/dirIO.h cmdCharDef.h \
- ../../include/util.h ../../include/dirIO.h
+ ../../include/util.h ../../include/dirIO.h ../../include/Usage.h
 cmdServer.o: cmdServer.cpp cmdClass.h cmdParser.h ../../include/def.h \
  ../../include/Usage.h ../../include/sftpSession.h \
  /usr/local/Cellar/libssh/0.9.5/include/libssh/libssh.h \

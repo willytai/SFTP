@@ -11,4 +11,6 @@ int main(int argc, char** argv) {
     errMgr.setColorfulOutput();
     cmdParser* cmdMgr = new cmdParser("sftp");
     cmdMgr->parse(argc, argv);
+    delete cmdMgr;
+    return 0;
 }

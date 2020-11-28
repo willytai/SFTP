@@ -4,8 +4,9 @@
 /************************************
  * Memory Usage by overriding 'new' *
  ***********************************/
-#include <algorithm>
+#include <cstdio>
 #include <cstdlib>
+#include <algorithm>
 class Memory
 {
 public:
@@ -47,10 +48,13 @@ private:
     size_t __heap_max;
 };
 
-void* operator new (size_t);
-void* operator new [] (size_t);
-void  operator delete(void*, size_t);
-void  operator delete [] (void*, size_t);
+void* operator new (size_t size);
+void* operator new [] (size_t size);
+
+// -- these overloads doesn't work with GNU gcc/g++ on mac
+//    to profile memory usage, use clang/clang++ instead
+void  operator delete(void* memory, std::size_t size) noexcept;
+void  operator delete [] (void* memory, std::size_t size) noexcept;
 
 
 /*****************************************

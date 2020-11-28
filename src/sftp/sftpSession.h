@@ -10,6 +10,7 @@
 #include <vector>
 #include "def.h"
 #include "dirIO.h"
+#include "Usage.h"
 
 namespace sftp
 {
@@ -54,10 +55,13 @@ public:
                 int v = SSH_LOG_PROTOCOL);
     ~sftpSession();
 
-    void setUsrName(const char* u, size_t l) { _usr    = (char*)malloc(l*sizeof(char)); strcpy(_usr,    u); }
-    void setHostIP (const char* h, size_t l) { _hostIP = (char*)malloc(l*sizeof(char)); strcpy(_hostIP, h); }
-    void setPsswd  (const char* p, size_t l) { _psswd  = (char*)malloc(l*sizeof(char)); strcpy(_psswd,  p); }
-    void setPort   (const char* p, size_t l) { _port   = (char*)malloc(l*sizeof(char)); strcpy(_port,   p); }
+    // str: c_string, l: string length ( strlen(str) will suffice )
+    void setUsrName(const char* str, size_t l) { _usr    = new char[l+1]; strcpy(_usr,    str); }
+    void setHostIP (const char* str, size_t l) { _hostIP = new char[l+1]; strcpy(_hostIP, str); }
+    void setPsswd  (const char* str, size_t l) { _psswd  = new char[l+1]; strcpy(_psswd,  str); }
+    void setPort   (const char* str, size_t l) { _port   = new char[l+1]; strcpy(_port,   str); }
+
+    // verbosity
     void setVerbose(int v) { _verbosity = v; }
 
     sftpStat start();

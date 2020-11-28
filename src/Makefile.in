@@ -25,7 +25,7 @@ CFLAGS = -O3 -std=c++14 $(PKGFLAG)
 CFLAGS = -g  -std=c++14 $(PKGFLAG)
 
 WFLAGS = -Wall -Wextra -pedantic-errors -Wconversion# -Werror
-FFLAGS =
+FFLAGS = -fsized-deallocation
 
 ifeq ($(ASAN), true)
 FFLAGS += -O1 -g -fsanitize=address -fsanitize-recover=address -fsanitize-address-use-after-scope -fno-omit-frame-pointer -fno-optimize-sibling-calls -DASAN
