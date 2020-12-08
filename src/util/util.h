@@ -35,6 +35,8 @@ void splitPathFile(const std::string&, std::string&, std::string&);
 char*  rmEscChar(const char*);
 char*  fillEscChar(const char*);
 
+const char* find_last(const char*, char);
+
 }
 
 #endif /* __UTIL_H__ */

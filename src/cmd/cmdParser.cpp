@@ -10,8 +10,6 @@
 
 extern errorMgr errMgr;
 
-static char cwdBuf[CWD_BUF_MAX];
-
 cmdParser::cmdParser(const char* prompt) {
     _prompt    = prompt;
     _bufEnd    = _bufPtr = _bufTmpPtr = NULL;
@@ -31,6 +29,7 @@ cmdParser::~cmdParser() {
         auto& hndl = pair.second;
         delete hndl;
     }
+    _history.clear();
 }
 
 void cmdParser::parse(int argc, char** argv) {
@@ -57,7 +56,6 @@ void cmdParser::parse(int argc, char** argv) {
     #endif
 
     errMgr.handle( astat );
-    exit(-1);
 }
 
 argStat cmdParser::parseArgs(int argc, char** argv) {
@@ -146,6 +144,7 @@ cmdStat cmdParser::readChar(std::istream& stream) {
 /* commands are CASE SENSITIVE!*/
 /*******************************/
 // TODO check if commands contain illegal keywords i.e. non-alphabetical characters
+//      string optimized!
 cmdStat cmdParser::regEachCmd(std::string cmd, size_t minCmp, cmdExec* cmdHandler) {
     // check for ambiguity
     std::string tmp = cmd;
@@ -164,11 +163,11 @@ cmdStat cmdParser::regEachCmd(std::string cmd, size_t minCmp, cmdExec* cmdHandle
     }
 
     // set its keyword, optional string, and register cmd
-    tmp = cmd.substr(minCmp);
-    cmdHandler->setOptional(tmp);
-    tmp = cmd.substr(0, minCmp);
-    cmdHandler->setKeyWord(tmp);
-    auto check = _cmdMap.insert(cmdKeyHandlerPair(tmp, cmdHandler));
+    std::string_view optional_view( (cmd.c_str()+minCmp), cmd.size()-minCmp);
+    cmdHandler->setOptional( optional_view );
+    std::string_view keyword_view( cmd.c_str(), minCmp);
+    cmdHandler->setKeyWord( keyword_view );
+    auto check = _cmdMap.emplace( tmp, cmdHandler );
 
     if ( check.second ) return CMD_REG_DONE;
     else {
@@ -361,7 +360,7 @@ void cmdParser::autoComplete() {
     else {
         cmpltStat stat;
         bool dirOnly = ( tokens[0]=="cd" || tokens[0]=="lcd" );
-        short scope = ( tokens[0] == "lls" || tokens[0] == "lcd" ) ? LOCAL : REMOTE;
+        short scope = ( tokens[0] == "lls" || tokens[0] == "lcd" || tokens[0] == "put") ? LOCAL : REMOTE;
         // buflen is garuanteed to be at least 2, so the statement is safe
         // make sure that space is not preceded by an escape chartacter
         if ( *(_bufPtr-1) == SPACE_CHAR && *(_bufPtr-2) != ESCAPE_CHAR ) {
@@ -622,10 +621,9 @@ void cmdParser::newLineCmd() {
     // save history
     size_t n = _bufEnd - _buf;
     if (n) {
-        std::string tmp;
-        tmp.resize(n);
-        for (size_t i = 0; i < n; ++i) tmp[i] = _buf[i];
-        _history.emplace_back(tmp);
+        _history.resize( _history.size()+1 );
+        _history.back().resize( n );
+        for (size_t i = 0; i < n; ++i) _history.back()[i] = _buf[i];
         _hisID = (short)_history.size();
     }
 
@@ -639,9 +637,11 @@ void cmdParser::newLineCmd() {
 void cmdParser::resetBuf() {
     _bufEnd = _bufPtr = _buf;
     this->printPrompt();
+
 }
 
 // TODO: should keep track of whether cd/lcd was triggered
+static char cwdBuf[CWD_BUF_MAX];
 static char cwdBufabbrv[CWD_BUF_MAX];
 void cmdParser::printPrompt() {
 
@@ -651,19 +651,20 @@ void cmdParser::printPrompt() {
         return;
     }
 
-    std::stringstream sswd;
+    std::ostringstream sswd;
     if ( _scope == LOCAL )  this->getLocalCWD( sswd );
     if ( _scope == REMOTE ) this->getRemoteCWD( sswd );
 
     cout << sswd.str() << " » ";
 }
 
-void cmdParser::getLocalCWD(std::stringstream& ss) const {
+void cmdParser::getLocalCWD(std::ostringstream& ss) const {
     ss << BOLD_YELLOW << '[' << _prompt << ']';
     ss << BOLD_CYAN   << " local ";
     ss << BOLD_RED    << " ➜ ";
 
     if ( getcwd(cwdBuf, CWD_BUF_MAX) == NULL ) {
+        // TODO
         // dynamic memory allocation is not implemented
         // if this happens, program aborts
         exit(-1);
@@ -682,7 +683,7 @@ void cmdParser::getLocalCWD(std::stringstream& ss) const {
     ss << BOLD_GREEN  << cwdBufabbrv << COLOR_RESET;
 }
 
-void cmdParser::getRemoteCWD(std::stringstream& ss) const {
+void cmdParser::getRemoteCWD(std::ostringstream& ss) const {
     const char* cwdRemote = this->_sftp_sess->pwd();
     this->trimPath( cwdRemote );
     ss << BOLD_YELLOW << '[' << _prompt << ']';

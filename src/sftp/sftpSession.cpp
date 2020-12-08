@@ -323,7 +323,6 @@ sftpStat sftpSession::readDir(const std::string& dir, std::vector<std::pair<std:
     return SFTP_OK;
 }
 
-//TODO remember to free the attributes after using the stuffs in the container
 sftpStat sftpSession::readDir(const char* dir, std::vector<sftp_attributes>& container) const {
     char* nEscDir = UTIL::rmEscChar( dir );
     std::string fulldir = nEscDir == NULL ? _pwd+"/"+dir : _pwd+"/"+std::string(nEscDir);

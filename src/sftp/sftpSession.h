@@ -74,6 +74,10 @@ public:
     sftpStat    get(const std::string&) const;
     sftpStat    get_recursive(const std::vector<std::string>&) const;
     sftpStat    get_recursive(const std::string&) const;
+    sftpStat    put(const std::vector<std::string>&) const;
+    sftpStat    put(const std::string&) const;
+    sftpStat    put_recursive(const std::vector<std::string>&) const;
+    sftpStat    put_recursive(const std::string&) const;
 
 private:
     sftpStat initSSHSession();

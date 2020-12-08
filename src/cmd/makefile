@@ -1,4 +1,4 @@
-PKGFLAG = -DDEV
+PKGFLAG = -DDEV -DMEMDEBUG
 EXTHDRS = cmdParser.h
 
 include ../Makefile.in

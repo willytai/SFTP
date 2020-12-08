@@ -1,4 +1,4 @@
-PKGFLAG =
+PKGFLAG = -DMEMDEBUG
 EXTHDRS = $(wildcard *.h)
 
 include ../Makefile.in

@@ -1,5 +1,5 @@
 # any flags defined in other packages need to be defined here as well
-PKGFLAG = -DDEV
+PKGFLAG = -DDEV -DMEMDEBUG
 EXTHDRS =
 
 include ../Makefile.in

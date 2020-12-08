@@ -16,13 +16,13 @@ EXTLINK       = $(PKGNAME)LNK#                           -- rule name of externa
 LIBCHECKPOINT = $(SRCLIBDIR)/.lib.check#                 -- the checkpoint file to flag when any source \
                                                             lib is re-compiled
 
-CXX  = g++
+CXX  = g++-9
 CCC  = gcc
 AR   = ar cr
 ECHO = /bin/echo
 
-CFLAGS = -O3 -std=c++14 $(PKGFLAG)
-CFLAGS = -g  -std=c++14 $(PKGFLAG)
+CFLAGS = -O3 -std=c++17 $(PKGFLAG)
+CFLAGS = -g  -std=c++17 $(PKGFLAG)
 
 WFLAGS = -Wall -Wextra -pedantic-errors -Wconversion# -Werror
 FFLAGS = -fsized-deallocation

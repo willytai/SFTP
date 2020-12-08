@@ -74,8 +74,8 @@ public:
     virtual void    usage()                     const = 0;
     virtual void    help()                      const = 0;
 
-    void setOptional( const std::string& s) { _opt = s; }
-    void setKeyWord( const std::string& s) { _key = s; }
+    void setOptional( const std::string_view& s) { _opt = s; }
+    void setKeyWord( const std::string_view& s) { _key = s; }
     void resetFlag() const { _flags = 0; }
 
     // for error handling and verbosity
@@ -269,8 +269,8 @@ private:
     void makeCopy();
 
     // prompt helper functions
-    void getLocalCWD(std::stringstream&) const;
-    void getRemoteCWD(std::stringstream&) const;
+    void getLocalCWD(std::ostringstream&) const;
+    void getRemoteCWD(std::ostringstream&) const;
     void trimPath(const char*) const;
 
 private:
@@ -280,9 +280,9 @@ private:
     char*        _bufEnd;
     char*        _bufPtr;
 
-    // _bufTmp is a copy _buf
     // when up/down/pgUp/pgDown keys are pressed
     std::vector<std::string> _history;
+    // _bufTmp is a copy _buf
     std::string              _bufTmp;
     char*                    _bufTmpPtr;
     short                    _hisID;
