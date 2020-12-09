@@ -76,7 +76,13 @@ public:
 
     void setOptional( const std::string_view& s) { _opt = s; }
     void setKeyWord( const std::string_view& s) { _key = s; }
+
+    // option flag
+    // TODO the coding style here is messed up
+    //      don't force execute to const if _flags needs to be modified during token parsing
+    void setFlag(int f) const { _flags |= f; }
     void resetFlag() const { _flags = 0; }
+    bool checkFlag(int f) const { return (_flags & f) == f; }
 
     // for error handling and verbosity
     const char* getOptional() const { return _opt.c_str(); }
@@ -150,7 +156,10 @@ public:
     void setErrCmd        (const std::string&)  const;
     void setErrOpt        (const std::string&)  const;
     void setErrArg        (const std::string&)  const;
+    void setErrArg        (const std::string_view&) const;
+    void setErrArg        (const char*) const;
     void setErrOpt        (const char&)         const;
+    void setErrOpt        (const std::string_view&)  const;
     void setErrHndlr      (const cmdExec*)      const;
 
     // for sftp session

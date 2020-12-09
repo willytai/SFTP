@@ -78,6 +78,11 @@ void errorMgr::setErrOpt(const std::string& optstr) const {
     }
 }
 
+void errorMgr::setErrOpt(const std::string_view& optstrview) const {
+    // insertion will not take place if element exists, very nice
+    ErrorOPT.emplace( optstrview );
+}
+
 void errorMgr::setErrOpt(const char& optchar) const {
     std::string tmp;
     tmp.resize(1);
@@ -90,6 +95,14 @@ void errorMgr::setErrHndlr(const cmdExec* handler) const {
 }
 
 void errorMgr::setErrArg(const std::string& arg) const {
+    ErrorArg = arg;
+}
+
+void errorMgr::setErrArg(const std::string_view& arg) const {
+    ErrorArg = arg;
+}
+
+void errorMgr::setErrArg(const char* arg) const {
     ErrorArg = arg;
 }
 

@@ -53,6 +53,53 @@ void parseTokens(const std::string& buf, std::vector<std::string>& tokens, char 
     tokens.push_back(buf.substr(start, end-start));
 }
 
+// more memory efficient
+void parseTokens(const std::string& buf, std::vector<std::string_view>& tokens, char delimiter, size_t maxTokens) {
+
+    // dummy check
+    if (buf.empty()) return;
+
+    size_t start = 0, end;
+
+    // get rid of leading delimiters
+    // will stop if ESCAPE_CHAR is encountered
+    for (; start < buf.length(); ++start) {
+        if (buf[start] != delimiter) break;
+    }
+    if (start == buf.length()) return;
+
+    // get rid of trailing delimiters
+    size_t maxCheck = buf.length()-1;
+    while (buf[maxCheck] == delimiter) --maxCheck;
+
+    // make sure to deal with escape characters for the first word
+    end = buf[start] == ESCAPE_CHAR ? start+2 : start+1;
+    while ( end <= maxCheck ) {
+        if ( buf[end] == ESCAPE_CHAR ) {
+            end += 2;
+        }
+        else if ( buf[end] == delimiter ) {
+            // tokens.push_back(buf.substr(start, end-start));
+            tokens.emplace_back( &buf[start], end-start );
+            start = end+1;
+            while ( buf[start] == delimiter ) start++;
+            end = start+1;
+
+            // fill at most maxTokens tokens
+            if ( tokens.size() == maxTokens-1 ) {
+                // tokens.push_back(buf.substr(start, maxCheck-start+1));
+                tokens.emplace_back( &buf[start], maxCheck-start+1 );
+                return;
+            }
+
+        }
+        else ++end;
+    }
+
+    // tokens.push_back(buf.substr(start, end-start));
+    tokens.emplace_back( &buf[start], end-start );
+}
+
 int wLength(int val) {
     return wLength((size_t)val);
 }
@@ -99,6 +146,22 @@ int strNcmp(const std::string& s1, const std::string& s2, size_t n) {
 
 int strNcmp_soft(const std::string& s1, const std::string& s2, size_t n) {
     return strncasecmp(s1.c_str(), s2.c_str(), n);
+}
+
+int strcmp(const std::string_view& sview, const char* s2, size_t n) {
+    if ( sview.size() != n ) return -1;
+    return strcmp( &sview.front(), s2, n );
+}
+
+// be very careful when calling this function!!!!
+// DO NOT pass in s1/s2 by the reference of the 'front' of a string_view ( no null char in string_view )
+int strcmp(const char* s1, const char* s2, size_t n) {
+    size_t i;
+    for (i = 0; i < n; ++i) {
+        if ( s1[i] != s2[i] ) return -1;
+    }
+    if ( s2[i] != '\0' ) return -1;
+    return 0;
 }
 
 static const char unitDict[] = {'B', 'K', 'M', 'G', 'T', 'P'};

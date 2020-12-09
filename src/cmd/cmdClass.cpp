@@ -19,6 +19,8 @@ void cmdParser::regCmd() {
          this->regEachCmd("cd",     2, new cdCmd(&_sftp_sess))    == CMD_REG_FAIL ||
          this->regEachCmd("mkdir",  5, new mkdirCmd(&_sftp_sess)) == CMD_REG_FAIL ||
          this->regEachCmd("chmod",  5, new chmodCmd(&_sftp_sess)) == CMD_REG_FAIL ||
+         this->regEachCmd("mput",   2, new mputCmd(&_sftp_sess))  == CMD_REG_FAIL ||
+         this->regEachCmd("mget",   2, new mgetCmd(&_sftp_sess))  == CMD_REG_FAIL ||
          this->regEachCmd("put",    1, new putCmd(&_sftp_sess))   == CMD_REG_FAIL ||
          this->regEachCmd("get",    1, new getCmd(&_sftp_sess))   == CMD_REG_FAIL  ) {
         fprintf(stderr, "Command registration failed.\n");

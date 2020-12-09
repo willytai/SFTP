@@ -39,6 +39,8 @@ cmdClassServer(lsCmd);
 cmdClassServer(mkdirCmd);
 cmdClassServer(rmCmd);
 cmdClassServer(chmodCmd);
+cmdClassServer(mputCmd);
+cmdClassServer(mgetCmd);
 cmdClassServer(putCmd);
 cmdClassServer(getCmd);
 

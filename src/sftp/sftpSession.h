@@ -70,10 +70,8 @@ public:
     sftpStat    cd(const std::string&);
     sftpStat    readDir(const std::string&, std::vector<std::pair<std::string, bool> >&) const;
     sftpStat    readDir(const char*, std::vector<sftp_attributes>&) const;
-    sftpStat    get(const std::vector<std::string>&) const;
-    sftpStat    get(const std::string&) const;
-    sftpStat    get_recursive(const std::vector<std::string>&) const;
-    sftpStat    get_recursive(const std::string&) const;
+    sftpStat    get(const std::string_view&, const std::string_view&, bool) const;
+    sftpStat    get_recursive(const std::string_view&, const std::string_view&, bool) const;
     sftpStat    put(const std::vector<std::string>&) const;
     sftpStat    put(const std::string&) const;
     sftpStat    put_recursive(const std::vector<std::string>&) const;

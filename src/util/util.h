@@ -3,16 +3,24 @@
 
 #include <vector>
 #include <string>
+#include <string_view>
 #include "def.h"
 
 namespace UTIL
 {
 // common helper functions
 void parseTokens(const std::string&, std::vector<std::string>&, char delimiter = ' ', size_t maxTokens = 0xffffffffffffffff);
+void parseTokens(const std::string&, std::vector<std::string_view>&, char delimiter = ' ', size_t maxTokens = 0xffffffffffffffff);
 void substr(const char*, char*, size_t, size_t n = 0xffffffffffffffff, size_t substart = 0);
 int  strNcmp(const std::string&, const std::string&, size_t);
 int  strNcmp(const char*, const char*, size_t);
 int  strNcmp_soft(const std::string&, const std::string&, size_t);
+
+// hard comparison between two strings ( need to be identical )
+// TODO write test
+// calling these two functions are pretty dangerous, make sure size do not exceede length
+int strcmp(const std::string_view&, const char*, size_t);
+int strcmp(const char*, const char*, size_t);
 
 // length of string or integers
 int    wLength(size_t);

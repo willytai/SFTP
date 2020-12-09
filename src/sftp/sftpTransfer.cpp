@@ -19,14 +19,22 @@ namespace sftp
 * GET method *
 **************/
 // read file to memory in chunks and transmit with sftp_read/sftp_write
-// TODO -f option ( overwrite )
-//      no overwrite ( warn )
+// set errMgr.setErrArg() only and set it properly!!!
+// TODO
 //      show percentage
 //      create the file in correct mode ( make executable executable )
-sftpStat sftpSession::get(const std::string& file) const {
+sftpStat sftpSession::get(const std::string_view& source, const std::string_view& destination, bool force) const {
 
-    char* nEscFile = UTIL::rmEscChar( file.c_str() );
-    const char* pfile = nEscFile == NULL ? file.c_str() : nEscFile;
+    // create c_str for c API
+    char* file_src = new char[source.size()+1];
+    memcpy( file_src, &source.front(), source.size() );
+    file_src[source.size()] = '\0';
+    char* file_dst = new char[destination.size()+1];
+    memcpy( file_dst, &destination.front(), destination.size() );
+    file_dst[destination.size()] = '\0';
+
+    char* nEscFile = UTIL::rmEscChar( file_src );
+    const char* pfile = nEscFile == NULL ? file_src : nEscFile;
 
     // concatenate path
     snprintf(fullpath, PATH_BUF_MAX, "%s/%s", _pwd.c_str(), pfile);
@@ -35,18 +43,27 @@ sftpStat sftpSession::get(const std::string& file) const {
 
     cout << "getting " << fullpath << endl;
 
-    // TODO Error handling for fptr
-    //      This is wrong right now
-    FILE* fptr = fopen( file.c_str(), "wb" );
+    const char* mode = force ? "wb" : "wbx";
+    FILE* fptr = fopen( file_dst, mode );
+    if ( fptr == NULL ) {
+        // doesn't matter which kind of error is returned, the cmdExec class will check for SFTP_OK or not and return cmdExecError on any sftp error
+        // errno wil be set automatically
+        delete [] file_src;
+        delete [] file_dst;
+        errMgr.setErrArg( file_dst );
+        return SFTP_GET_ERROR;
+    }
     sftp_file __file = sftp_open( _sftp_session, fullpath, O_RDONLY, 0);
     if ( __file == NULL ) {
         // remove the local file and set errorno properly
         this->seterrno( sftp_get_error(_sftp_session) );
-        errMgr.setErrArg( file );
+        errMgr.setErrArg( file_src );
         if ( fptr ) {
             fclose( fptr );
-            remove( file.c_str() );
+            remove( file_dst );
         }
+        delete [] file_src;
+        delete [] file_dst;
         return SFTP_READFILE_ERROR;
     }
     sftp_file_set_nonblocking( __file );
@@ -63,8 +80,10 @@ sftpStat sftpSession::get(const std::string& file) const {
         errMgr.setErrArg( "sftp_async_read_begin" );
         if ( fptr ) {
             fclose( fptr );
-            remove( file.c_str() );
+            remove( file_src );
         }
+        delete [] file_src;
+        delete [] file_dst;
         return SFTP_GET_ERROR;
     }
     while ( nbytes == SSH_AGAIN || nbytes > 0 ) {
@@ -87,12 +106,14 @@ sftpStat sftpSession::get(const std::string& file) const {
     // remove file if error happens
     if ( nbytes < 0 ) {
         this->seterrno( sftp_get_error(_sftp_session) );
-        errMgr.setErrArg( file );
+        errMgr.setErrArg( file_src );
         sftp_close( __file );
         if ( fptr ) {
             fclose( fptr );
-            remove( file.c_str() );
+            remove( file_dst );
         }
+        delete [] file_src;
+        delete [] file_dst;
         return SFTP_GET_ERROR;
     }
 
@@ -102,31 +123,19 @@ sftpStat sftpSession::get(const std::string& file) const {
     // close the file handler
     if ( sftp_close(__file) != SSH_OK ) {
         this->seterrno( sftp_get_error(_sftp_session) );
-        errMgr.setErrArg( file );
+        errMgr.setErrArg( file_src );
+        delete [] file_src;
+        delete [] file_dst;
         return SFTP_CLOSEFILE_ERROR;
     }
+    delete [] file_src;
+    delete [] file_dst;
     return SFTP_OK;
-}
-
-sftpStat sftpSession::get(const std::vector<std::string>& targets) const {
-    sftpStat returnStat = SFTP_OK;
-    for (const auto& file : targets) {
-        returnStat = this->get( file );
-    }
-    return returnStat;
 }
 
 // TODO
-sftpStat sftpSession::get_recursive(const std::string& dir) const {
+sftpStat sftpSession::get_recursive(const std::string_view& source, const std::string_view& target, bool force) const {
     return SFTP_OK;
-}
-
-sftpStat sftpSession::get_recursive(const std::vector<std::string>& targets) const {
-    sftpStat returnStat = SFTP_OK;
-    for (const auto& dir : targets) {
-        returnStat = this->get_recursive( dir );
-    }
-    return returnStat;
 }
 
 
