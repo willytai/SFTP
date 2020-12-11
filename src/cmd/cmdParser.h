@@ -74,6 +74,10 @@ public:
     virtual void    usage()                     const = 0;
     virtual void    help()                      const = 0;
 
+    // set the availabel options
+    void setOptionFlags(const char* str) { _available_options.emplace_back( str ); }
+    auto getAvailOptions() const -> const std::vector<std::string>& { return _available_options; }
+
     void setOptional( const std::string_view& s) { _opt = s; }
     void setKeyWord( const std::string_view& s) { _key = s; }
 
@@ -97,6 +101,7 @@ private:
 
 protected:
     mutable int _flags;
+    std::vector<std::string> _available_options;
 };
 
 
@@ -255,6 +260,7 @@ private:
 #endif
     cmdStat readChar(std::istream&);
     cmdStat regEachCmd(std::string, size_t, cmdExec*);
+    cmdStat regEachCmdOption(cmdExec*);
     cmdStat interpretateAndExecute() const;
 
     cmdExec* getCmdHandler(const std::string&) const;

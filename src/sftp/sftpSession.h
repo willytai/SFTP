@@ -72,10 +72,8 @@ public:
     sftpStat    readDir(const char*, std::vector<sftp_attributes>&) const;
     sftpStat    get(const std::string_view&, const std::string_view&, bool) const;
     sftpStat    get_recursive(const std::string_view&, const std::string_view&, bool) const;
-    sftpStat    put(const std::vector<std::string>&) const;
-    sftpStat    put(const std::string&) const;
-    sftpStat    put_recursive(const std::vector<std::string>&) const;
-    sftpStat    put_recursive(const std::string&) const;
+    sftpStat    put(const std::string_view&, const std::string_view&, bool) const;
+    sftpStat    put_recursive(const std::string_view&, const std::string_view&, bool) const;
 
 private:
     sftpStat initSSHSession();

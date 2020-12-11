@@ -52,7 +52,7 @@ cmdSftp.o: cmdSftp.cpp cmdClass.h cmdParser.h ../../include/def.h \
  /usr/local/Cellar/libssh/0.9.5/include/libssh/sftp.h \
  /usr/local/Cellar/libssh/0.9.5/include/libssh/libssh.h \
  ../../include/def.h ../../include/dirIO.h ../../include/util.h \
- ../../include/flags.h
+ ../../include/flags.h ../../include/cmdParser.h
 errorMgr.o: errorMgr.cpp cmdParser.h ../../include/def.h \
  ../../include/Usage.h ../../include/sftpSession.h \
  /usr/local/Cellar/libssh/0.9.5/include/libssh/libssh.h \

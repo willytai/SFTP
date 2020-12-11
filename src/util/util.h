@@ -43,7 +43,7 @@ void splitPathFile(const std::string&, std::string&, std::string&);
 char*  rmEscChar(const char*);
 char*  fillEscChar(const char*);
 
-const char* find_last(const char*, char);
+std::string_view find_last(const std::string_view&, char);
 
 }
 

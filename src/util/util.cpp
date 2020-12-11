@@ -218,18 +218,16 @@ void splitPathFile(const std::string& full, std::string& dir, std::string& file)
     file = (end+1 == full.size())     ? ""   : full.substr(end+1); // npos == -1
 }
 
-// returns the original string if not found
-const char* find_last(const char* str, char delimiter) {
-    const char* ret = NULL;
-    int i = 0;
-    while ( str[i] != '\0' ) {
-        if ( str[i] == delimiter && str[i+1] != '\0' ) {
-            ret = &str[i+1];
+// returns the original string_view if not found
+std::string_view find_last(const std::string_view& sview, char delimiter) {
+    size_t pos = 0;
+    size_t i = 0;
+    for (; i < sview.size(); ++i) {
+        if ( sview[i] == delimiter && i+1 < sview.size() ) {
+            pos = i+1;
         }
-        ++i;
     }
-    ret = ret == NULL ? str : ret;
-    return ret;
+    return sview.substr(pos);
 }
 
 }

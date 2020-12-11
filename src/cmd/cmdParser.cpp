@@ -169,7 +169,7 @@ cmdStat cmdParser::regEachCmd(std::string cmd, size_t minCmp, cmdExec* cmdHandle
     cmdHandler->setKeyWord( keyword_view );
     auto check = _cmdMap.emplace( tmp, cmdHandler );
 
-    if ( check.second ) return CMD_REG_DONE;
+    if ( check.second ) return this->regEachCmdOption(cmdHandler);
     else {
         fprintf(stderr, "Command keyword conflict in command \'%s\', \'%s%s\'\n",
                 cmd.c_str(),
