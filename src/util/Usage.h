@@ -1,6 +1,22 @@
 #ifndef __USAGE_H__
 #define __USAGE_H__
 
+#include <chrono>
+
+struct Timer
+{
+    Timer(double* dst) : _report_dst(dst) {
+        _start = std::chrono::high_resolution_clock::now();
+    }
+    ~Timer() {
+        auto _end = std::chrono::high_resolution_clock::now();
+        *_report_dst = std::chrono::duration_cast<std::chrono::duration<double>>( _end - _start ).count();
+    }
+
+    std::chrono::high_resolution_clock::time_point _start;
+    double* _report_dst;
+};
+
 /*****************************************
  * Memory/Time Usage from system library *
  ****************************************/

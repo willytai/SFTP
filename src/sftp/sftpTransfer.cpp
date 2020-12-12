@@ -7,7 +7,7 @@
 extern errorMgr errMgr;
 
 #define MAX_XFER_BUF_SIZE 32768
-#define WAIT_INTERVAL 10000 // in microsecond
+#define WAIT_INTERVAL 1000 // in microsecond
 
 static char xferbuf[MAX_XFER_BUF_SIZE];
 static char fullpath[PATH_BUF_MAX];
@@ -19,7 +19,6 @@ namespace sftp
 * GET method *
 **************/
 // read file to memory in chunks and transmit with sftp_read/sftp_write
-// set errMgr.setErrArg() only and set it properly!!!
 // TODO
 //      show percentage
 sftpStat sftpSession::get(const std::string_view& source, const std::string_view& destination, bool force) const {
@@ -42,7 +41,7 @@ sftpStat sftpSession::get(const std::string_view& source, const std::string_view
 
     if ( nEscFile1 ) delete [] nEscFile1;
 
-    cout << "fetching " << fullpath << " to " << p_file_dst << endl;
+    cout << "Fetching from " << fullpath << " to " << p_file_dst << endl;
 
     const char* __accesstype = force ? "wb" : "wbx";
     FILE* fptr = fopen( file_dst, __accesstype );
@@ -72,9 +71,16 @@ sftpStat sftpSession::get(const std::string_view& source, const std::string_view
     }
     sftp_file_set_nonblocking( __file );
 
+    // start fetching
+    int count = 0L, nbytes = -1;
+    double __elpased_time = 0;
+    {
+
+    Timer t(&__elpased_time);
+
     // read in chunks
     // TODO add a timeout function in case of a poor connection causing the application to suspend
-    int count = 0L, nbytes = -1, async_req = sftp_async_read_begin( __file, MAX_XFER_BUF_SIZE );
+    int async_req = sftp_async_read_begin( __file, MAX_XFER_BUF_SIZE );
     if ( async_req >= 0 ) {
         usleep( WAIT_INTERVAL );
         nbytes = sftp_async_read( __file, xferbuf, MAX_XFER_BUF_SIZE, async_req );
@@ -106,7 +112,11 @@ sftpStat sftpSession::get(const std::string_view& source, const std::string_view
         }
     }
 
-    cout << "waited for " << count * WAIT_INTERVAL / 1000 << " ms during transmission" << endl;
+    } // fetch complete
+
+    printf("Transmission time: %.3fms\n", __elpased_time);
+
+    // cout << "waited for " << count * WAIT_INTERVAL / 1000 << " ms during transmission" << endl;
 
     // remove file if error happens
     if ( nbytes < 0 ) {
@@ -178,7 +188,7 @@ sftpStat sftpSession::put(const std::string_view& source, const std::string_view
 
     if ( nEscFile2 ) delete [] nEscFile2;
 
-    cout << "putting " << p_file_src << " to " << fullpath << endl;
+    cout << "Transferring from " << p_file_src << " to " << fullpath << endl;
 
     FILE* fptr = fopen( p_file_src, "rb" );
     if ( fptr == NULL ) {
@@ -207,12 +217,21 @@ sftpStat sftpSession::put(const std::string_view& source, const std::string_view
         return SFTP_READFILE_ERROR;
     }
 
-    // read in chunks and upload
+    // start transferring
     int nbytes = -1;
+    double __elpased_time = 0;
+    {
+
+    Timer t(&__elpased_time);
+
+    // read in chunks and upload
     while ( (nbytes = (int)fread( xferbuf, sizeof(char), MAX_XFER_BUF_SIZE, fptr )) > 0 ) {
-        cout << nbytes << " read from " << file_src << endl;
         sftp_write( __file, xferbuf, (size_t)nbytes );
     }
+
+    } // transfer complete
+
+    printf("Transmission time: %.3fms\n", __elpased_time);
 
     // remove file if error happens
     // THERE ARE NO API TO REMOVE REMOTE FILES
