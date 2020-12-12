@@ -3,6 +3,7 @@
 #include "util.h"
 #include <fcntl.h>
 #include <unistd.h>
+#include <cmath>
 
 extern errorMgr errMgr;
 
@@ -19,8 +20,7 @@ namespace sftp
 * GET method *
 **************/
 // read file to memory in chunks and transmit with sftp_read/sftp_write
-// TODO
-//      show percentage
+// TODO show ETA
 sftpStat sftpSession::get(const std::string_view& source, const std::string_view& destination, bool force) const {
 
     // create c_str for c API
@@ -72,66 +72,86 @@ sftpStat sftpSession::get(const std::string_view& source, const std::string_view
     sftp_file_set_nonblocking( __file );
 
     // start fetching
+    sftp_attributes attr = sftp_stat( _sftp_session, fullpath );
     int count = 0L, nbytes = -1;
     double __elpased_time = 0;
+    const size_t& __total_size = attr->size;
+    int __term_width = UTIL::getTermWidth();
+    int __status_bar_print_width = __term_width - 27;
     {
 
-    Timer t(&__elpased_time);
+        Timer t(&__elpased_time);
+        double __process = 0.0;
+        int    __int_process = 0;
 
-    // read in chunks
-    // TODO add a timeout function in case of a poor connection causing the application to suspend
-    int async_req = sftp_async_read_begin( __file, MAX_XFER_BUF_SIZE );
-    if ( async_req >= 0 ) {
-        usleep( WAIT_INTERVAL );
-        nbytes = sftp_async_read( __file, xferbuf, MAX_XFER_BUF_SIZE, async_req );
-    }
-    else {
-        this->seterrno( sftp_get_error(_sftp_session) );
-        errMgr.setErrArg( "sftp_async_read_begin" );
-        if ( fptr ) {
-            fclose( fptr );
-            remove( file_src );
-        }
-        delete [] file_src;
-        delete [] file_dst;
-        delete [] nEscFile2;
-        return SFTP_GET_ERROR;
-    }
-    while ( nbytes == SSH_AGAIN || nbytes > 0 ) {
-        if ( nbytes > 0 ) {
-            fwrite( xferbuf, nbytes, 1, fptr );
-            async_req = sftp_async_read_begin( __file, MAX_XFER_BUF_SIZE );
-        }
-        else ++count;
-        usleep( WAIT_INTERVAL );
+        cout << "[>" << std::right << std::setw(__status_bar_print_width-2) << ']' << std::flush;
+
+        // read in chunks
+        // TODO add a timeout function in case of a poor connection causing the application to suspend
+        int async_req = sftp_async_read_begin( __file, MAX_XFER_BUF_SIZE );
         if ( async_req >= 0 ) {
+            usleep( WAIT_INTERVAL );
             nbytes = sftp_async_read( __file, xferbuf, MAX_XFER_BUF_SIZE, async_req );
         }
         else {
-            nbytes = -1;
+            this->seterrno( sftp_get_error(_sftp_session) );
+            errMgr.setErrArg( "sftp_async_read_begin" );
+            if ( fptr ) {
+                fclose( fptr );
+                remove( file_src );
+            }
+            delete [] file_src;
+            delete [] file_dst;
+            delete [] nEscFile2;
+            return SFTP_GET_ERROR;
         }
-    }
+        while ( nbytes == SSH_AGAIN || nbytes > 0 ) {
+            if ( nbytes > 0 ) {
+                fwrite( xferbuf, nbytes, 1, fptr );
+
+                __process += (double)nbytes / (double)__total_size;
+                __int_process = (int)std::ceil( (__status_bar_print_width-3) * __process );
+                cout << "\r[";
+                for (int i = 0; i < __int_process; ++i) cout << '=';
+                cout << '>';
+                cout << std::right << std::setw(__status_bar_print_width-2-__int_process) << ']' << std::flush;
+
+                async_req = sftp_async_read_begin( __file, MAX_XFER_BUF_SIZE );
+            }
+            else ++count;
+            usleep( WAIT_INTERVAL );
+            if ( async_req >= 0 ) {
+                nbytes = sftp_async_read( __file, xferbuf, MAX_XFER_BUF_SIZE, async_req );
+            }
+            else {
+                nbytes = -1;
+            }
+        }
+
+        // remove file if error happens
+        if ( nbytes < 0 ) {
+            this->seterrno( sftp_get_error(_sftp_session) );
+            errMgr.setErrArg( file_src );
+            sftp_close( __file );
+            if ( fptr ) {
+                fclose( fptr );
+                remove( file_dst );
+            }
+            delete [] file_src;
+            delete [] file_dst;
+            delete [] nEscFile2;
+            return SFTP_GET_ERROR;
+        }
+
+        // transfer successful, GREEN COLOR!
+        cout << NORMAL_GREEN << "\r[";
+        for (int i = 0; i < __status_bar_print_width-3; ++i) cout << '=';
+        cout << ">]";
 
     } // fetch complete
 
-    printf("Transmission time: %.3fms\n", __elpased_time);
-
+    printf("  Transmission time: %.3fs\n", __elpased_time);
     // cout << "waited for " << count * WAIT_INTERVAL / 1000 << " ms during transmission" << endl;
-
-    // remove file if error happens
-    if ( nbytes < 0 ) {
-        this->seterrno( sftp_get_error(_sftp_session) );
-        errMgr.setErrArg( file_src );
-        sftp_close( __file );
-        if ( fptr ) {
-            fclose( fptr );
-            remove( file_dst );
-        }
-        delete [] file_src;
-        delete [] file_dst;
-        delete [] nEscFile2;
-        return SFTP_GET_ERROR;
-    }
 
     // close the written file
     fclose( fptr );
@@ -147,7 +167,6 @@ sftpStat sftpSession::get(const std::string_view& source, const std::string_view
     }
 
     // last, make sure the fetched file is in correct mode
-    sftp_attributes attr = sftp_lstat( _sftp_session, fullpath );
     chmod( file_dst, (mode_t)attr->permissions );
 
     delete [] file_src;
@@ -166,8 +185,7 @@ sftpStat sftpSession::get_recursive(const std::string_view& source, const std::s
 * PUT method *
 **************/
 // read file to memory in chunks and transmit with sftp_read/sftp_write
-// TODO
-//      show percentage
+// TODO show ETA
 sftpStat sftpSession::put(const std::string_view& source, const std::string_view& destination, bool force) const {
 
     // create c_str for c API
@@ -202,7 +220,7 @@ sftpStat sftpSession::put(const std::string_view& source, const std::string_view
         return SFTP_GET_ERROR;
     }
     struct stat statbuf;
-    lstat( p_file_src, &statbuf);
+    stat( p_file_src, &statbuf);
     int __accesstype = O_WRONLY | O_CREAT;
     __accesstype |= force ? O_TRUNC : O_EXCL;
     sftp_file __file = sftp_open( _sftp_session, fullpath, __accesstype, statbuf.st_mode );
@@ -220,29 +238,49 @@ sftpStat sftpSession::put(const std::string_view& source, const std::string_view
     // start transferring
     int nbytes = -1;
     double __elpased_time = 0;
+    const off_t& __total_size = statbuf.st_size;
+    int __term_width = UTIL::getTermWidth();
+    int __status_bar_print_width = __term_width - 27;
     {
 
-    Timer t(&__elpased_time);
+        Timer t(&__elpased_time);
+        double __process = 0.0;
+        int    __int_process = 0;
 
-    // read in chunks and upload
-    while ( (nbytes = (int)fread( xferbuf, sizeof(char), MAX_XFER_BUF_SIZE, fptr )) > 0 ) {
-        sftp_write( __file, xferbuf, (size_t)nbytes );
-    }
+        cout << "[>" << std::right << std::setw(__status_bar_print_width-2) << ']' << std::flush;
+
+        // read in chunks and upload
+        while ( (nbytes = (int)fread( xferbuf, sizeof(char), MAX_XFER_BUF_SIZE, fptr )) > 0 ) {
+            sftp_write( __file, xferbuf, (size_t)nbytes );
+
+            __process += (double)nbytes / (double)__total_size;
+            __int_process = (int)std::ceil( (__status_bar_print_width-3) * __process );
+            cout << "\r[";
+            for (int i = 0; i < __int_process; ++i) cout << '=';
+            cout << '>';
+            cout << std::right << std::setw(__status_bar_print_width-2-__int_process) << ']' << std::flush;
+
+        }
+
+        // remove file if error happens
+        // THERE ARE NO API TO REMOVE REMOTE FILES
+        if ( nbytes < 0 ) {
+            errMgr.setErrArg( file_src );
+            if ( fptr ) fclose( fptr );
+            delete [] file_src;
+            delete [] file_dst;
+            delete [] nEscFile1;
+            return SFTP_READFILE_ERROR;
+        }
+
+        // transfer successful, GREEN COLOR!
+        cout << NORMAL_GREEN << "\r[";
+        for (int i = 0; i < __status_bar_print_width-3; ++i) cout << '=';
+        cout << ">]";
 
     } // transfer complete
 
-    printf("Transmission time: %.3fms\n", __elpased_time);
-
-    // remove file if error happens
-    // THERE ARE NO API TO REMOVE REMOTE FILES
-    if ( nbytes < 0 ) {
-        errMgr.setErrArg( file_src );
-        if ( fptr ) fclose( fptr );
-        delete [] file_src;
-        delete [] file_dst;
-        delete [] nEscFile1;
-        return SFTP_READFILE_ERROR;
-    }
+    printf("  Transmission time: %.3fs%s\n", __elpased_time, COLOR_RESET);
 
     // close the written file
     if ( sftp_close(__file) != SSH_OK ) {
