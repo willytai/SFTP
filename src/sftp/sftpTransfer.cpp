@@ -22,7 +22,6 @@ namespace sftp
 // set errMgr.setErrArg() only and set it properly!!!
 // TODO
 //      show percentage
-//      create the file in correct mode ( make executable executable )
 sftpStat sftpSession::get(const std::string_view& source, const std::string_view& destination, bool force) const {
 
     // create c_str for c API
@@ -45,11 +44,12 @@ sftpStat sftpSession::get(const std::string_view& source, const std::string_view
 
     cout << "fetching " << fullpath << " to " << p_file_dst << endl;
 
-    const char* mode = force ? "wb" : "wbx";
-    FILE* fptr = fopen( file_dst, mode );
+    const char* __accesstype = force ? "wb" : "wbx";
+    FILE* fptr = fopen( file_dst, __accesstype );
     if ( fptr == NULL ) {
-        // doesn't matter which kind of error is returned, the cmdExec class will check for SFTP_OK or not and return cmdExecError on any sftp error
-        // errno wil be set automatically
+        // -- doesn't matter which kind of error is returned,
+        //    the cmdExec class will check for SFTP_OK or not and return cmdExecError on any sftp error
+        // -- errno wil be set automatically
         errMgr.setErrArg( file_dst );
         delete [] file_src;
         delete [] file_dst;
@@ -136,6 +136,10 @@ sftpStat sftpSession::get(const std::string_view& source, const std::string_view
         return SFTP_CLOSEFILE_ERROR;
     }
 
+    // last, make sure the fetched file is in correct mode
+    sftp_attributes attr = sftp_lstat( _sftp_session, fullpath );
+    chmod( file_dst, (mode_t)attr->permissions );
+
     delete [] file_src;
     delete [] file_dst;
     free(nEscFile2);
@@ -154,7 +158,6 @@ sftpStat sftpSession::get_recursive(const std::string_view& source, const std::s
 // read file to memory in chunks and transmit with sftp_read/sftp_write
 // TODO
 //      show percentage
-//      create the file in correct mode ( make executable executable )
 sftpStat sftpSession::put(const std::string_view& source, const std::string_view& destination, bool force) const {
 
     // create c_str for c API
@@ -179,8 +182,9 @@ sftpStat sftpSession::put(const std::string_view& source, const std::string_view
 
     FILE* fptr = fopen( p_file_src, "rb" );
     if ( fptr == NULL ) {
-        // doesn't matter which kind of error is returned, the cmdExec class will check for SFTP_OK or not and return cmdExecError on any sftp error
-        // errno wil be set automatically
+        // -- doesn't matter which kind of error is returned,
+        //    the cmdExec class will check for SFTP_OK or not and return cmdExecError on any sftp error
+        // -- errno wil be set automatically
         errMgr.setErrArg( file_src );
         delete [] file_src;
         delete [] file_dst;
@@ -194,7 +198,7 @@ sftpStat sftpSession::put(const std::string_view& source, const std::string_view
     sftp_file __file = sftp_open( _sftp_session, fullpath, __accesstype, statbuf.st_mode );
     if ( __file == NULL ) {
         // set errno properly
-        this->seterrno( sftp_get_error(_sftp_session) );
+        this->seterrno( SSH_FX_FILE_ALREADY_EXISTS );
         errMgr.setErrArg( file_dst );
         if ( fptr ) fclose( fptr );
         delete [] file_src;
