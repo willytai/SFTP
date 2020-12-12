@@ -18,7 +18,7 @@ char* rmEscChar(const char* str) {
     size_t offset = 0, i = 0;
     for (; i < len; ++i) {
         if ( ret == NULL && str[i] == ESCAPE_CHAR ) {
-            ret = (char*)malloc(len*sizeof(char));
+            ret = new char[len+1];
             memset(ret, '\0', len);
             memcpy(ret, str, i);
             ++offset;
@@ -44,7 +44,7 @@ char* fillEscChar(const char* str) {
         if ( str[i] == SPACE_CHAR ||
              str[i] == WILDCARD_CHAR) {
             if ( ret == NULL ) {
-                ret = (char*)malloc((2*len-i+1)*sizeof(char));
+                ret = new char[2*len-i+1];
                 memset(ret, '\0', 2*len-i);
                 memcpy(ret, str, i);
             }
@@ -67,14 +67,14 @@ char* fillEscChar(const char* str) {
 bool readDir(const char* dir, std::vector<std::pair<std::string, bool> >& container) {
     char* nEscDir = rmEscChar( dir );
     DIR* dirptr = nEscDir == NULL ? opendir(dir) : opendir(nEscDir);
-    if ( nEscDir != NULL ) free( nEscDir );
+    if ( nEscDir != NULL ) delete [] nEscDir;
     if ( dirptr == NULL ) return false;
     struct dirent* direntry;
     while ( (direntry = readdir(dirptr)) != NULL ) {
         char* filled = fillEscChar( direntry->d_name );
         const char* store = filled == NULL ? direntry->d_name : filled;
         container.emplace_back( store, direntry->d_type==DT_DIR );
-        if ( filled ) free(filled);
+        if ( filled ) delete [] filled;
     }
     return true;
 }
@@ -83,7 +83,7 @@ bool readDir(const char* dir, std::vector<std::pair<std::string, bool> >& contai
 bool readDir(const char* dir, std::vector<dirent*>& container) {
     char* nEscDir = rmEscChar( dir );
     DIR* dirptr = nEscDir == NULL ? opendir(dir) : opendir(nEscDir);
-    if ( nEscDir != NULL ) free( nEscDir );
+    if ( nEscDir != NULL ) delete [] nEscDir;
     if ( dirptr == NULL ) return false;
     struct dirent* direntry;
     while ( (direntry = readdir(dirptr)) != NULL ) {
@@ -113,7 +113,7 @@ bool readDir(const char* dir, std::vector<dirent*>& container) {
 bool getEntryStat(const char* dirName, const char* filename, struct EntryStat* entryStat) {
     char* nEscDir = rmEscChar( dirName );
     std::string fullname = nEscDir == NULL ? std::string(dirName) : std::string(nEscDir);
-    if ( nEscDir ) free( nEscDir );
+    if ( nEscDir ) delete [] nEscDir;
     if ( fullname.back() != '/' ) fullname += "/"+std::string(filename);
     else fullname += std::string(filename);
 

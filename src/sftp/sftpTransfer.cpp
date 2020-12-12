@@ -40,7 +40,7 @@ sftpStat sftpSession::get(const std::string_view& source, const std::string_view
     // concatenate path
     snprintf(fullpath, PATH_BUF_MAX, "%s/%s", _pwd.c_str(), p_file_src);
 
-    if ( nEscFile1 ) free( nEscFile1 );
+    if ( nEscFile1 ) delete [] nEscFile1;
 
     cout << "fetching " << fullpath << " to " << p_file_dst << endl;
 
@@ -53,7 +53,7 @@ sftpStat sftpSession::get(const std::string_view& source, const std::string_view
         errMgr.setErrArg( file_dst );
         delete [] file_src;
         delete [] file_dst;
-        free( nEscFile2);
+        delete [] nEscFile2;
         return SFTP_GET_ERROR;
     }
     sftp_file __file = sftp_open( _sftp_session, fullpath, O_RDONLY, 0);
@@ -67,7 +67,7 @@ sftpStat sftpSession::get(const std::string_view& source, const std::string_view
         }
         delete [] file_src;
         delete [] file_dst;
-        free(nEscFile2);
+        delete [] nEscFile2;
         return SFTP_READFILE_ERROR;
     }
     sftp_file_set_nonblocking( __file );
@@ -88,7 +88,7 @@ sftpStat sftpSession::get(const std::string_view& source, const std::string_view
         }
         delete [] file_src;
         delete [] file_dst;
-        free(nEscFile2);
+        delete [] nEscFile2;
         return SFTP_GET_ERROR;
     }
     while ( nbytes == SSH_AGAIN || nbytes > 0 ) {
@@ -119,7 +119,7 @@ sftpStat sftpSession::get(const std::string_view& source, const std::string_view
         }
         delete [] file_src;
         delete [] file_dst;
-        free(nEscFile2);
+        delete [] nEscFile2;
         return SFTP_GET_ERROR;
     }
 
@@ -132,7 +132,7 @@ sftpStat sftpSession::get(const std::string_view& source, const std::string_view
         errMgr.setErrArg( file_src );
         delete [] file_src;
         delete [] file_dst;
-        free(nEscFile2);
+        delete [] nEscFile2;
         return SFTP_CLOSEFILE_ERROR;
     }
 
@@ -142,7 +142,7 @@ sftpStat sftpSession::get(const std::string_view& source, const std::string_view
 
     delete [] file_src;
     delete [] file_dst;
-    free(nEscFile2);
+    delete [] nEscFile2;
     return SFTP_OK;
 }
 
@@ -176,7 +176,7 @@ sftpStat sftpSession::put(const std::string_view& source, const std::string_view
     // concatenate path
     snprintf(fullpath, PATH_BUF_MAX, "%s/%s", _pwd.c_str(), p_file_dst);
 
-    if ( nEscFile2 ) free( nEscFile2 );
+    if ( nEscFile2 ) delete [] nEscFile2;
 
     cout << "putting " << p_file_src << " to " << fullpath << endl;
 
@@ -188,7 +188,7 @@ sftpStat sftpSession::put(const std::string_view& source, const std::string_view
         errMgr.setErrArg( file_src );
         delete [] file_src;
         delete [] file_dst;
-        free( nEscFile1);
+        delete [] nEscFile1;
         return SFTP_GET_ERROR;
     }
     struct stat statbuf;
@@ -203,7 +203,7 @@ sftpStat sftpSession::put(const std::string_view& source, const std::string_view
         if ( fptr ) fclose( fptr );
         delete [] file_src;
         delete [] file_dst;
-        free(nEscFile1);
+        delete [] nEscFile1;
         return SFTP_READFILE_ERROR;
     }
 
@@ -221,7 +221,7 @@ sftpStat sftpSession::put(const std::string_view& source, const std::string_view
         if ( fptr ) fclose( fptr );
         delete [] file_src;
         delete [] file_dst;
-        free(nEscFile1);
+        delete [] nEscFile1;
         return SFTP_READFILE_ERROR;
     }
 
@@ -231,7 +231,7 @@ sftpStat sftpSession::put(const std::string_view& source, const std::string_view
         errMgr.setErrArg( file_dst );
         delete [] file_src;
         delete [] file_dst;
-        free(nEscFile1);
+        delete [] nEscFile1;
         return SFTP_CLOSEFILE_ERROR;
     }
 
@@ -240,7 +240,7 @@ sftpStat sftpSession::put(const std::string_view& source, const std::string_view
 
     delete [] file_src;
     delete [] file_dst;
-    free(nEscFile1);
+    delete [] nEscFile1;
     return SFTP_OK;
 }
 

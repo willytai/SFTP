@@ -238,7 +238,7 @@ sftpStat sftpSession::cd(const std::string& path) {
     // concatenate path
     snprintf(fullpath, PATH_BUF_MAX, "%s/%s", _pwd.c_str(), pdir);
 
-    if ( nEscDir ) free( nEscDir );
+    if ( nEscDir ) delete [] nEscDir;
 
     // if path doesn't exist, set errno properly
     if ( (_dir = sftp_opendir(_sftp_session, fullpath)) == NULL ) {
@@ -293,7 +293,7 @@ sftpStat sftpSession::cd(const std::string& path) {
 sftpStat sftpSession::readDir(const std::string& dir, std::vector<std::pair<std::string, bool> >& container) const {
     char* nEscDir = UTIL::rmEscChar( dir.c_str() );
     std::string fulldir = nEscDir == NULL ? _pwd+"/"+dir : _pwd+"/"+std::string(nEscDir);
-    if ( nEscDir ) free( nEscDir );
+    if ( nEscDir ) delete [] nEscDir;
 
     sftp_dir curdir;
     if ( ( curdir = sftp_opendir( _sftp_session, fulldir.c_str() ) ) == NULL ) {
@@ -306,7 +306,7 @@ sftpStat sftpSession::readDir(const std::string& dir, std::vector<std::pair<std:
         char* filled = UTIL::fillEscChar( curattr->name );
         const char* store = filled == NULL ? curattr->name : filled;
         container.emplace_back( std::string(store), curattr->longname[0]=='d' );
-        if ( filled ) free(filled);
+        if ( filled ) delete [] filled;
         sftp_attributes_free( curattr );
     }
 
@@ -326,7 +326,7 @@ sftpStat sftpSession::readDir(const std::string& dir, std::vector<std::pair<std:
 sftpStat sftpSession::readDir(const char* dir, std::vector<sftp_attributes>& container) const {
     char* nEscDir = UTIL::rmEscChar( dir );
     std::string fulldir = nEscDir == NULL ? _pwd+"/"+dir : _pwd+"/"+std::string(nEscDir);
-    if ( nEscDir ) free( nEscDir );
+    if ( nEscDir ) delete [] nEscDir;
 
     sftp_dir curdir;
     if ( ( curdir = sftp_opendir( _sftp_session, fulldir.c_str() ) ) == NULL ) {

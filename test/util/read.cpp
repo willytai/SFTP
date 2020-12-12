@@ -77,14 +77,14 @@ TEST_CASE( "-- rmEscChar --", "[UTIL]" )
     char* ans;
     REQUIRE( (ans = UTIL::rmEscChar("asdf")) == NULL );
     REQUIRE( std::string(ans = UTIL::rmEscChar("a\\ \\*shit")) == "a *shit" );
-    free( ans );
+    delete [] ans;
 }
 TEST_CASE( "-- fillEscChar --", "[UTIL]" )
 {
     char* ans;
     REQUIRE( (ans = UTIL::fillEscChar("asdfghj")) == NULL);
     REQUIRE( std::string(ans = UTIL::fillEscChar("a b")) == "a\\ b");
-    free( ans );
+    delete [] ans;
     REQUIRE( std::string(ans = UTIL::fillEscChar("a*b ")) == "a\\*b\\ ");
-    free( ans );
+    delete [] ans;
 }

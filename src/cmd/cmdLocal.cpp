@@ -116,7 +116,7 @@ cmdStat lcdCmd::execute(const std::string& option) const {
     char* nEscDir = UTIL::rmEscChar( target.c_str() );
     const char* dir = nEscDir == NULL ? target.c_str() : nEscDir;
     int stat = chdir( dir );
-    if ( nEscDir ) free( nEscDir );
+    if ( nEscDir ) delete [] nEscDir;
 
     // error handling
     if ( stat != 0 ) {
