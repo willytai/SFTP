@@ -1,8 +1,10 @@
 #include "sftpSession.h"
 #include "cmdParser.h"
 #include "util.h"
+#include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <errno.h>
 #include <cmath>
 
 extern errorMgr errMgr;
@@ -12,6 +14,8 @@ extern errorMgr errMgr;
 
 static char xferbuf[MAX_XFER_BUF_SIZE];
 static char fullpath[PATH_BUF_MAX];
+
+// TODO try using unique pointer
 
 namespace sftp
 {
@@ -41,7 +45,7 @@ sftpStat sftpSession::get(const std::string_view& source, const std::string_view
 
     if ( nEscFile1 ) delete [] nEscFile1;
 
-    cout << "Fetching from " << fullpath << " to " << p_file_dst << endl;
+    cout << "Fetching " << fullpath << " to " << p_file_dst << endl;
 
     const char* __accesstype = force ? "wb" : "wbx";
     FILE* fptr = fopen( file_dst, __accesstype );
@@ -77,7 +81,7 @@ sftpStat sftpSession::get(const std::string_view& source, const std::string_view
     double __elpased_time = 0;
     const size_t& __total_size = attr->size;
     int __term_width = UTIL::getTermWidth();
-    int __status_bar_print_width = __term_width - 27;
+    int __status_bar_print_width = __term_width - 13;
     {
 
         Timer t(&__elpased_time);
@@ -150,7 +154,7 @@ sftpStat sftpSession::get(const std::string_view& source, const std::string_view
 
     } // fetch complete
 
-    printf("  Transmission time: %.3fs\n", __elpased_time);
+    printf("\t%.3f sec.\n%s", __elpased_time/1000, COLOR_RESET);
     // cout << "waited for " << count * WAIT_INTERVAL / 1000 << " ms during transmission" << endl;
 
     // close the written file
@@ -177,7 +181,60 @@ sftpStat sftpSession::get(const std::string_view& source, const std::string_view
 
 // TODO
 sftpStat sftpSession::get_recursive(const std::string_view& source, const std::string_view& destination, bool force) const {
-    return SFTP_OK;
+
+    // create c_str for c API
+    char* file_src = new char[source.size()+1];
+    memcpy( file_src, &source.front(), source.size() );
+    file_src[source.size()] = '\0';
+    char* file_dst = new char[destination.size()+1];
+    memcpy( file_dst, &destination.front(), destination.size() );
+    file_dst[destination.size()] = '\0';
+
+    std::vector<sftp_attributes> attrs;
+    sftpStat returnStat = this->readDir( file_src, attrs );
+    if ( returnStat == SFTP_OK ) { // directory
+        auto mkdir_result = mkdir(file_dst, 0755);
+        if ( mkdir_result != 0 && errno == EEXIST && !force ) {
+            errMgr.setErrArg( file_dst );
+            delete [] file_src;
+            delete [] file_dst;
+            return SFTP_GET_ERROR;
+        }
+        else if ( mkdir_result != 0 && errno != EEXIST ) {
+            errMgr.setErrArg( file_dst );
+            delete [] file_src;
+            delete [] file_dst;
+            return SFTP_GET_ERROR;
+        }
+        for (auto& attr : attrs) {
+            if ( strcmp(attr->name, ".") == 0 ) continue;
+            if ( strcmp(attr->name, "..") == 0 ) continue;
+            size_t newSrcSize = source.size()+strlen(attr->name)+2;
+            size_t newDstSize = destination.size()+strlen(attr->name)+2;
+            char* newSrc = new char[newSrcSize];
+            char* newDst = new char[newDstSize];
+            if ( source.back() == '/' ) {
+                snprintf( newSrc, newSrcSize, "%s%s", file_src, attr->name );
+                snprintf( newDst, newDstSize, "%s%s", file_dst, attr->name );
+            }
+            else {
+                snprintf( newSrc, newSrcSize, "%s/%s", file_src, attr->name );
+                snprintf( newDst, newDstSize, "%s/%s", file_dst, attr->name );
+            }
+            this->get_recursive( std::string_view(newSrc), std::string_view(newDst), force );
+            sftp_attributes_free( attr );
+            delete [] newSrc;
+            delete [] newDst;
+        }
+    }
+    else { // other files or illegal files, leave error pasring to the next level
+        returnStat = this->get( source, destination, force );
+    }
+
+
+    delete [] file_src;
+    delete [] file_dst;
+    return returnStat;
 }
 
 
@@ -206,7 +263,7 @@ sftpStat sftpSession::put(const std::string_view& source, const std::string_view
 
     if ( nEscFile2 ) delete [] nEscFile2;
 
-    cout << "Transferring from " << p_file_src << " to " << fullpath << endl;
+    cout << "Uploading " << p_file_src << " to " << fullpath << endl;
 
     FILE* fptr = fopen( p_file_src, "rb" );
     if ( fptr == NULL ) {
@@ -240,7 +297,7 @@ sftpStat sftpSession::put(const std::string_view& source, const std::string_view
     double __elpased_time = 0;
     const off_t& __total_size = statbuf.st_size;
     int __term_width = UTIL::getTermWidth();
-    int __status_bar_print_width = __term_width - 27;
+    int __status_bar_print_width = __term_width - 13;
     {
 
         Timer t(&__elpased_time);
@@ -280,7 +337,7 @@ sftpStat sftpSession::put(const std::string_view& source, const std::string_view
 
     } // transfer complete
 
-    printf("  Transmission time: %.3fs%s\n", __elpased_time, COLOR_RESET);
+    printf("\t%.3f sec.\n%s", __elpased_time/1000, COLOR_RESET);
 
     // close the written file
     if ( sftp_close(__file) != SSH_OK ) {

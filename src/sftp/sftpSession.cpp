@@ -323,6 +323,7 @@ sftpStat sftpSession::readDir(const std::string& dir, std::vector<std::pair<std:
     return SFTP_OK;
 }
 
+// remember to call sftp_attributes_free after using this function
 sftpStat sftpSession::readDir(const char* dir, std::vector<sftp_attributes>& container) const {
     char* nEscDir = UTIL::rmEscChar( dir );
     std::string fulldir = nEscDir == NULL ? _pwd+"/"+dir : _pwd+"/"+std::string(nEscDir);
@@ -331,12 +332,14 @@ sftpStat sftpSession::readDir(const char* dir, std::vector<sftp_attributes>& con
     sftp_dir curdir;
     if ( ( curdir = sftp_opendir( _sftp_session, fulldir.c_str() ) ) == NULL ) {
         errMgr.setSftpErr( ssh_get_error(_ssh_session) );
+        errMgr.setErrArg( fulldir.c_str() );
         return SFTP_READDIR_ERROR;
     }
 
     sftp_attributes curattr;
     while ( (curattr = sftp_readdir( _sftp_session, curdir )) != NULL ) {
         // don't know why sftp_readdir fails to get file type, doing it on my own
+        // TODO it actually works, just that the uint8_t type cannot be printed to the console
         const char* type_ch_ptr = &(curattr->longname[0]);
         if ( *type_ch_ptr == UTIL::EntryStat::TYPE_DIR ) curattr->type = DT_DIR;
         else if ( *type_ch_ptr == UTIL::EntryStat::TYPE_LNK ) curattr->type = DT_LNK;
@@ -349,10 +352,12 @@ sftpStat sftpSession::readDir(const char* dir, std::vector<sftp_attributes>& con
     // error handling
     if ( curdir->eof != 1) {
         errMgr.setSftpErr( ssh_get_error(_ssh_session) );
+        errMgr.setErrArg( fulldir.c_str() );
         return SFTP_READDIR_ERROR;
     }
     if ( sftp_closedir( curdir ) ) {
         errMgr.setSftpErr( ssh_get_error(_ssh_session) );
+        errMgr.setErrArg( fulldir.c_str() );
         return SFTP_READDIR_ERROR;
     }
 

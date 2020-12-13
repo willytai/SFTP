@@ -2,18 +2,23 @@
 #define __USAGE_H__
 
 #include <chrono>
-
+/********************
+ * Unit: ms         *
+ * Precision: us    *
+ *******************/
 struct Timer
 {
     Timer(double* dst) : _report_dst(dst) {
-        _start = std::chrono::high_resolution_clock::now();
+        _startTimePoint = std::chrono::high_resolution_clock::now();
     }
     ~Timer() {
-        auto _end = std::chrono::high_resolution_clock::now();
-        *_report_dst = std::chrono::duration_cast<std::chrono::duration<double>>( _end - _start ).count();
+        auto _endTimePoint = std::chrono::high_resolution_clock::now();
+        auto _start = std::chrono::time_point_cast<std::chrono::microseconds>(_startTimePoint).time_since_epoch().count();
+        auto _end   = std::chrono::time_point_cast<std::chrono::microseconds>(_endTimePoint).time_since_epoch().count();
+        *_report_dst = (double)(_end - _start) * 1e-3;
     }
 
-    std::chrono::high_resolution_clock::time_point _start;
+    std::chrono::high_resolution_clock::time_point _startTimePoint;
     double* _report_dst;
 };
 
