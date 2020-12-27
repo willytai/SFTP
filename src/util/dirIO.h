@@ -19,7 +19,9 @@ namespace UTIL
 {
 
 bool   readDir(const char*, std::vector<dirent*>&);
+bool   readDir(const std::string_view&, std::vector<dirent*>&);
 bool   readDir(const char*, std::vector<std::pair<std::string, bool> >&);
+bool   readDir(const std::string_view&, std::vector<std::pair<std::string, bool> >&);
 
 struct EntryStat
 {

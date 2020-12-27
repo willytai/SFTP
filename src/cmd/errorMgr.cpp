@@ -59,7 +59,7 @@ bool errorMgr::handle(const sftp::sftpStat& errCode) {
 /**********************
  * for command parser *
  *********************/
-void errorMgr::handleNonExistDir(const std::string& cmd, const std::vector<std::string>& nonExistDir, bool lbreak) const {
+void errorMgr::handleNonExistDir(const std::string& cmd, const std::vector<std::string_view>& nonExistDir, bool lbreak) const {
     for (const auto& dir : nonExistDir) {
         if ( _colorful ) cout << BOLD_RED;
         cerr << cmd << ": " << dir << ": No such file or directory" << endl;
@@ -69,6 +69,14 @@ void errorMgr::handleNonExistDir(const std::string& cmd, const std::vector<std::
 }
 
 void errorMgr::setErrCmd(const std::string& cmd) const {
+    ErrorCMD = cmd;
+}
+
+void errorMgr::setErrCmd(const std::string_view& cmd) const {
+    ErrorCMD = cmd;
+}
+
+void errorMgr::setErrCmd(const char* cmd) const {
     ErrorCMD = cmd;
 }
 
@@ -114,7 +122,7 @@ void errorMgr::cmdError() {
 
 void errorMgr::cmdOptIllegal() {
     if ( _colorful ) cerr << BOLD_RED;
-    cerr << "Illegal Option for \'" << ErrorHandler->getKeyWord() << ErrorHandler->getOptional() << "\':";
+    cerr << "Illegal Option for \'" << ErrorHandler->getCmdStr() << "\':";
     for (const auto& opt : ErrorOPT) cerr << " -" << opt;
     if ( _colorful ) cerr << COLOR_RESET;
     cerr << endl;

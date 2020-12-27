@@ -9,12 +9,16 @@
 namespace UTIL
 {
 // common helper functions
-void parseTokens(const std::string&, std::vector<std::string>&, char delimiter = ' ', size_t maxTokens = 0xffffffffffffffff);
-void parseTokens(const std::string&, std::vector<std::string_view>&, char delimiter = ' ', size_t maxTokens = 0xffffffffffffffff);
+// template <typename T>
+// void parseTokens(const T&, std::vector<std::string>&, char delimiter = ' ', size_t maxTokens = 0xffffffffffffffff);
+void parseTokens(const std::string_view&, std::vector<std::string_view>&, char delimiter = ' ', size_t maxTokens = 0xffffffffffffffff);
 void substr(const char*, char*, size_t, size_t n = 0xffffffffffffffff, size_t substart = 0);
 int  strNcmp(const std::string&, const std::string&, size_t);
+int  strNcmp(const std::string_view&, const std::string&, size_t);
+int  strNcmp(const std::string_view&, const std::string_view&, size_t);
 int  strNcmp(const char*, const char*, size_t);
 int  strNcmp_soft(const std::string&, const std::string&, size_t);
+int  strNcmp_soft(const std::string_view&, const std::string_view&, size_t);
 
 // hard comparison between two strings ( need to be identical )
 // TODO write test
@@ -37,7 +41,7 @@ int getTermWidth();
 void getHomeDir(const char**);
 
 // split into directory and filename
-void splitPathFile(const std::string&, std::string&, std::string&);
+void splitPathFile(const std::string_view&, std::string_view&, std::string_view&);
 
 // string manipulation
 char*  rmEscChar(const char*);

@@ -12,7 +12,7 @@ extern errorMgr errMgr;
 /* llsCmd */
 /**********/
 // TODO support single-file listing and wildcard listing
-cmdStat llsCmd::execute(const std::string& option) const {
+cmdStat llsCmd::execute(const std::string_view& option) const {
     /*************************************************
      * -- Split with ' '
      * -- Any tokens that doesn't start with '-' will
@@ -22,10 +22,10 @@ cmdStat llsCmd::execute(const std::string& option) const {
      **************************************************/
 
     // parse tokens
-    vecstr tokens;
+    vecstr_view tokens;
     UTIL::parseTokens(option, tokens);
 
-    vecstr queryDir;
+    vecstr_view queryDir;
     std::string flags;
     for (const auto& tok : tokens) {
         if ( tok[0] != '-' ) queryDir.push_back(tok);
@@ -33,7 +33,7 @@ cmdStat llsCmd::execute(const std::string& option) const {
     }
 
     // default listing directory
-    if ( queryDir.size() == 0 ) queryDir.push_back("./");
+    if ( queryDir.size() == 0 ) queryDir.emplace_back( DEFAULT_DIR );
 
     // the printer
     LISTING::Printer* dirPrinter = new LISTING::Printer( errMgr.colorOutput() );
@@ -61,7 +61,7 @@ cmdStat llsCmd::execute(const std::string& option) const {
             std::swap(dir, queryDir.back());
             queryDir.pop_back();
         }
-        else if ( UTIL::readDir(dir.c_str(), check.first->second) ) {
+        else if ( UTIL::readDir(dir, check.first->second) ) {
             std::swap(dir, queryDir.back());
             queryDir.pop_back();
         }
@@ -103,25 +103,35 @@ void llsCmd::help() const {
 /* lcdCmd */
 /**********/
 // TODO: support "cd old new"
-cmdStat lcdCmd::execute(const std::string& option) const {
-    vecstr tokens;
+cmdStat lcdCmd::execute(const std::string_view& option) const {
+    vecstr_view tokens;
     UTIL::parseTokens(option, tokens);
     if ( tokens.size() > 1 ) {
         errMgr.setErrCmd("lcd");
         return CMD_ARG_TOO_MANY;
     }
-    const std::string& target = tokens.size() == 0 ? _home : tokens[0];
 
-    // check for escape characters
-    char* nEscDir = UTIL::rmEscChar( target.c_str() );
-    const char* dir = nEscDir == NULL ? target.c_str() : nEscDir;
-    int stat = chdir( dir );
-    if ( nEscDir ) delete [] nEscDir;
+    int stat;
+    if ( !tokens.size() ) {
+        stat = chdir( _home );
+    }
+    else {
+        std::unique_ptr<char[]> char_dir = std::make_unique<char[]>(tokens[0].size()+1);
+        memcpy( char_dir.get(), tokens[0].data(), tokens[0].size() );
+        char_dir[tokens[0].size()] = '\0';
+
+        // check for escape characters
+        char* nEscDir = UTIL::rmEscChar( char_dir.get() );
+        const char* dir = nEscDir == NULL ? char_dir.get() : nEscDir;
+        if ( nEscDir ) delete [] nEscDir;
+
+        stat = chdir( dir );
+    }
 
     // error handling
     if ( stat != 0 ) {
         errMgr.setErrCmd("lcd");
-        errMgr.setErrArg( target );
+        errMgr.setErrArg( tokens[0] );
         return CMD_EXEC_ERROR;
     }
     else return CMD_DONE;

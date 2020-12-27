@@ -70,16 +70,17 @@ public:
     cmdExec() : _flags(0) {}
     virtual ~cmdExec() {}
 
-    virtual cmdStat execute(const std::string&) const = 0;
-    virtual void    usage()                     const = 0;
-    virtual void    help()                      const = 0;
+    virtual cmdStat execute(const std::string_view&) const = 0;
+    virtual void    usage()                          const = 0;
+    virtual void    help()                           const = 0;
 
     // set the availabel options
     void setOptionFlags(const char* str) { _available_options.emplace_back( str ); }
     auto getAvailOptions() const -> const std::vector<std::string>& { return _available_options; }
 
-    void setOptional( const std::string_view& s) { _opt = s; }
-    void setKeyWord( const std::string_view& s) { _key = s; }
+    void setCmdStr( const char* s ) { _cmd_string = std::string(s); }
+    void setKeyWordOptional( size_t minCmp ) { _key = std::string_view(_cmd_string.data(), minCmp);
+                                               _opt = std::string_view((_cmd_string.data()+minCmp), _cmd_string.size()-minCmp); }
 
     // option flag
     // TODO the coding style here is messed up
@@ -89,15 +90,19 @@ public:
     bool checkFlag(int f) const { return (_flags & f) == f; }
 
     // for error handling and verbosity
-    const char* getOptional() const { return _opt.c_str(); }
-    const char* getKeyWord() const { return _key.c_str(); }
-    const std::string& getOptionalStr() const { return _opt; }
-    const std::string& getKeyWordStr() const { return _key; }
-    std::string        getCmdStr() const { return _key+_opt; }
+    // const char* getOptional() const { return _opt.c_str(); }
+    // const char* getKeyWord() const { return _key.c_str(); }
+    const std::string_view& getKeyWordView() const { return _key; }
+    const std::string_view& getOptionalView() const { return _opt; }
+    // const std::string& getOptionalStr() const { return _opt; }
+    // const std::string& getKeyWordStr() const { return _key; }
+    const std::string& getCmdStr() const { return _cmd_string; }
+    const char*        getCmdStrData() const { return _cmd_string.c_str(); }
 
 private:
-    std::string _key;
-    std::string _opt;
+    std::string_view _key;
+    std::string_view _opt;
+    std::string _cmd_string;
 
 protected:
     mutable int _flags;
@@ -108,33 +113,33 @@ protected:
 /*****************************/
 /* local command class macro */
 /*****************************/
-#define cmdClassLocal(T)                       \
-class T : public cmdExec                       \
-{                                              \
-public:                                        \
-    T() {}                                     \
-    ~T() {}                                    \
-                                               \
-    cmdStat execute(const std::string&) const; \
-    void    usage()   const;                   \
-    void    help()    const;                   \
+#define cmdClassLocal(T)                                     \
+class T : public cmdExec                                     \
+{                                                            \
+public:                                                      \
+    T() {}                                                   \
+    ~T() {}                                                  \
+                                                             \
+    cmdStat execute(const std::string_view&) const override; \
+    void    usage()   const override;                        \
+    void    help()    const override;                        \
 }
 
 /******************************/
 /* server command class macro */
 /******************************/
-#define cmdClassServer(T)                            \
-class T : public cmdExec                             \
-{                                                    \
-public:                                              \
-    T(sftp::sftpSession** s) { _sftp_sess_ptr = s; } \
-    ~T() {}                                          \
-                                                     \
-    cmdStat execute(const std::string&) const;       \
-    void    usage()   const;                         \
-    void    help()    const;                         \
-private:                                             \
-    sftp::sftpSession**  _sftp_sess_ptr;             \
+#define cmdClassServer(T)                                    \
+class T : public cmdExec                                     \
+{                                                            \
+public:                                                      \
+    T(sftp::sftpSession** s) { _sftp_sess_ptr = s; }         \
+    ~T() {}                                                  \
+                                                             \
+    cmdStat execute(const std::string_view&) const override; \
+    void    usage()   const;                                 \
+    void    help()    const;                                 \
+private:                                                     \
+    sftp::sftpSession**  _sftp_sess_ptr;                     \
 }
 
 /*****************/
@@ -153,12 +158,14 @@ public:
     bool colorOutput() const { return _colorful; }
 
     // for 'ls' and 'lls'
-    void handleNonExistDir(const std::string&, const std::vector<std::string>&, bool) const;
+    void handleNonExistDir(const std::string&, const std::vector<std::string_view>&, bool) const;
 
     void setColorfulOutput() { _colorful = true; }
 
     // for command parser
     void setErrCmd        (const std::string&)  const;
+    void setErrCmd        (const char*)  const;
+    void setErrCmd        (const std::string_view&)  const;
     void setErrOpt        (const std::string&)  const;
     void setErrArg        (const std::string&)  const;
     void setErrArg        (const std::string_view&) const;
@@ -224,7 +231,7 @@ class cmdParser
 // between client and server
 #define cmpltStat sftp::sftpStat
 
-typedef std::unordered_map<std::string, cmdExec*> cmdMAP;
+typedef std::unordered_map<std::string_view, cmdExec*> cmdMAP;
 typedef std::pair<std::string, cmdExec*>          cmdKeyHandlerPair;
 
 public:
@@ -259,19 +266,20 @@ private:
 private:
 #endif
     cmdStat readChar(std::istream&);
-    cmdStat regEachCmd(std::string, size_t, cmdExec*);
+    cmdStat regEachCmd(const char*, size_t, cmdExec*);
     cmdStat regEachCmdOption(cmdExec*);
     cmdStat interpretateAndExecute() const;
 
-    cmdExec* getCmdHandler(const std::string&) const;
+    cmdExec* getCmdHandler(const std::string_view&) const;
 
     void resetBuf();
     void printPrompt();
 
-    cmpltStat completePath(const std::string&, short scope, bool dirOnly = false);
+    cmpltStat completePath(const std::string_view&, short scope, bool dirOnly = false);
     void autoComplete();
-    void completeCmd(const std::string&);
-    void showMatched(const std::vector<std::pair<std::string, bool> >&, int);
+    void completeCmd(const std::string_view&);
+    template<typename T>
+    void showMatched(const T&, int);
     void rePrintBuf();
 
     void insertChar(char, int count = 1);

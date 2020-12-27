@@ -5,7 +5,7 @@
 /***********/
 /* quitCmd */
 /***********/
-cmdStat quitCmd::execute(const std::string& option) const {
+cmdStat quitCmd::execute(const std::string_view& option) const {
     // doesn't matter what follows the command, just return the exit status
     return CMD_EXIT;
 }
@@ -21,7 +21,7 @@ void quitCmd::help() const {
 /************/
 /* clearCmd */
 /************/
-cmdStat clearCmd::execute(const std::string& option) const {
+cmdStat clearCmd::execute(const std::string_view& option) const {
     // doens't matter what follows the command, just clear the screen
     // -- clear from (J) top to (2) bottom
     // -- position cursor at row 1, col 1
@@ -40,7 +40,7 @@ void clearCmd::help() const {
 /***********/
 /* helpCmd */
 /***********/
-cmdStat helpCmd::execute(const std::string& option) const {
+cmdStat helpCmd::execute(const std::string_view& option) const {
     return CMD_DONE;
 }
 
@@ -55,7 +55,7 @@ void helpCmd::help() const {
 /*************/
 /* remoteCmd */
 /*************/
-cmdStat remoteCmd::execute(const std::string& option) const {
+cmdStat remoteCmd::execute(const std::string_view& option) const {
     return CMD_CHANGE_REMOTE_SCOPE;
 }
 
@@ -70,7 +70,7 @@ void remoteCmd::help() const {
 /************/
 /* localCmd */
 /************/
-cmdStat localCmd::execute(const std::string& option) const {
+cmdStat localCmd::execute(const std::string_view& option) const {
     return CMD_CHANGE_LOCAL_SCOPE;
 }
 
@@ -85,7 +85,7 @@ void localCmd::help() const {
 /***********/
 /* exitCmd */
 /***********/
-cmdStat exitCmd::execute(const std::string& option) const {
+cmdStat exitCmd::execute(const std::string_view& option) const {
     return CMD_EXIT;
 }
 
@@ -100,7 +100,7 @@ void exitCmd::help() const {
 /************/
 /* usageCmd */
 /************/
-cmdStat usageCmd::execute(const std::string& option) const {
+cmdStat usageCmd::execute(const std::string_view& option) const {
     char* buf = (char*)malloc(16*sizeof(char));
     snprintf( buf, 16, "%.2f MB", SysUsage::getMem() );
     cout << "+-------------+" << endl;

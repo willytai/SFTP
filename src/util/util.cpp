@@ -10,7 +10,8 @@
 namespace UTIL
 {
 
-void parseTokens(const std::string& buf, std::vector<std::string>& tokens, char delimiter, size_t maxTokens) {
+template <typename T>
+void parseTokens(const T& buf, std::vector<std::string>& tokens, char delimiter, size_t maxTokens) {
 
     // dummy check
     if (buf.empty()) return;
@@ -54,7 +55,7 @@ void parseTokens(const std::string& buf, std::vector<std::string>& tokens, char 
 }
 
 // more memory efficient
-void parseTokens(const std::string& buf, std::vector<std::string_view>& tokens, char delimiter, size_t maxTokens) {
+void parseTokens(const std::string_view& buf, std::vector<std::string_view>& tokens, char delimiter, size_t maxTokens) {
 
     // dummy check
     if (buf.empty()) return;
@@ -144,8 +145,20 @@ int strNcmp(const std::string& s1, const std::string& s2, size_t n) {
     return strNcmp(s1.c_str(), s2.c_str(), n);
 }
 
+int strNcmp(const std::string_view& s1, const std::string& s2, size_t n) {
+    return strNcmp(s1.data(), s2.c_str(), n);
+}
+
+int strNcmp(const std::string_view& s1, const std::string_view& s2, size_t n) {
+    return strNcmp(s1.data(), s2.data(), n);
+}
+
 int strNcmp_soft(const std::string& s1, const std::string& s2, size_t n) {
     return strncasecmp(s1.c_str(), s2.c_str(), n);
+}
+
+int strNcmp_soft(const std::string_view& s1, const std::string_view& s2, size_t n) {
+    return strncasecmp(s1.data(), s2.data(), n);
 }
 
 int strcmp(const std::string_view& sview, const char* s2, size_t n) {
@@ -212,7 +225,7 @@ void getHomeDir(const char** h) {
     *h = getpwuid(getuid())->pw_dir;
 }
 
-void splitPathFile(const std::string& full, std::string& dir, std::string& file) {
+void splitPathFile(const std::string_view& full, std::string_view& dir, std::string_view& file) {
     size_t end = full.find_last_of('/');
     dir  = (end == std::string::npos) ? "./" : full.substr(0, end);
     file = (end+1 == full.size())     ? ""   : full.substr(end+1); // npos == -1

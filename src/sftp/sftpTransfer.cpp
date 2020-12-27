@@ -16,6 +16,7 @@ static char xferbuf[MAX_XFER_BUF_SIZE];
 static char fullpath[PATH_BUF_MAX];
 
 // TODO try using unique pointer
+//      need to implement a 'walk' function
 
 namespace sftp
 {
@@ -25,37 +26,36 @@ namespace sftp
 **************/
 // read file to memory in chunks and transmit with sftp_read/sftp_write
 // TODO show ETA
-sftpStat sftpSession::get(const std::string_view& source, const std::string_view& destination, bool force) const {
+//      make sure source/destination does not contain trailing '/'
+sftpStat sftpSession::get(const std::string_view& source, const std::string_view& destination, bool force, bool __verbose) const {
 
     // create c_str for c API
-    char* file_src = new char[source.size()+1];
-    memcpy( file_src, &source.front(), source.size() );
+    std::unique_ptr<char[]> file_src = std::make_unique<char[]>(source.size()+1);
+    std::unique_ptr<char[]> file_dst = std::make_unique<char[]>(destination.size()+1);
+    memcpy( file_src.get(), &source.front(), source.size() );
+    memcpy( file_dst.get(), &destination.front(), destination.size() );
     file_src[source.size()] = '\0';
-    char* file_dst = new char[destination.size()+1];
-    memcpy( file_dst, &destination.front(), destination.size() );
     file_dst[destination.size()] = '\0';
 
-    char* nEscFile1 = UTIL::rmEscChar( file_src );
-    char* nEscFile2 = UTIL::rmEscChar( file_dst );
-    const char* p_file_src = nEscFile1 == NULL ? file_src : nEscFile1;
-    const char* p_file_dst = nEscFile2 == NULL ? file_dst : nEscFile2;
+    char* nEscFile1 = UTIL::rmEscChar( file_src.get() );
+    char* nEscFile2 = UTIL::rmEscChar( file_dst.get() );
+    const char* p_file_src = nEscFile1 == NULL ? file_src.get() : nEscFile1;
+    const char* p_file_dst = nEscFile2 == NULL ? file_dst.get() : nEscFile2;
 
     // concatenate path
     snprintf(fullpath, PATH_BUF_MAX, "%s/%s", _pwd.c_str(), p_file_src);
 
     if ( nEscFile1 ) delete [] nEscFile1;
 
-    cout << "Fetching " << fullpath << " to " << p_file_dst << endl;
+    if ( __verbose ) cout << "Fetching " << fullpath << " to " << p_file_dst << endl;
 
     const char* __accesstype = force ? "wb" : "wbx";
-    FILE* fptr = fopen( file_dst, __accesstype );
+    FILE* fptr = fopen( file_dst.get(), __accesstype );
     if ( fptr == NULL ) {
         // -- doesn't matter which kind of error is returned,
         //    the cmdExec class will check for SFTP_OK or not and return cmdExecError on any sftp error
         // -- errno wil be set automatically
-        errMgr.setErrArg( file_dst );
-        delete [] file_src;
-        delete [] file_dst;
+        errMgr.setErrArg( file_dst.get() );
         delete [] nEscFile2;
         return SFTP_GET_ERROR;
     }
@@ -63,13 +63,11 @@ sftpStat sftpSession::get(const std::string_view& source, const std::string_view
     if ( __file == NULL ) {
         // remove the local file and set errorno properly
         this->seterrno( sftp_get_error(_sftp_session) );
-        errMgr.setErrArg( file_src );
+        errMgr.setErrArg( file_src.get() );
         if ( fptr ) {
             fclose( fptr );
-            remove( file_dst );
+            remove( file_dst.get() );
         }
-        delete [] file_src;
-        delete [] file_dst;
         delete [] nEscFile2;
         return SFTP_READFILE_ERROR;
     }
@@ -88,7 +86,7 @@ sftpStat sftpSession::get(const std::string_view& source, const std::string_view
         double __process = 0.0;
         int    __int_process = 0;
 
-        cout << "[>" << std::right << std::setw(__status_bar_print_width-2) << ']' << std::flush;
+        if ( __verbose ) cout << "[>" << std::right << std::setw(__status_bar_print_width-2) << ']' << std::flush;
 
         // read in chunks
         // TODO add a timeout function in case of a poor connection causing the application to suspend
@@ -102,10 +100,8 @@ sftpStat sftpSession::get(const std::string_view& source, const std::string_view
             errMgr.setErrArg( "sftp_async_read_begin" );
             if ( fptr ) {
                 fclose( fptr );
-                remove( file_src );
+                remove( file_src.get() );
             }
-            delete [] file_src;
-            delete [] file_dst;
             delete [] nEscFile2;
             return SFTP_GET_ERROR;
         }
@@ -115,10 +111,12 @@ sftpStat sftpSession::get(const std::string_view& source, const std::string_view
 
                 __process += (double)nbytes / (double)__total_size;
                 __int_process = (int)std::ceil( (__status_bar_print_width-3) * __process );
-                cout << "\r[";
-                for (int i = 0; i < __int_process; ++i) cout << '=';
-                cout << '>';
-                cout << std::right << std::setw(__status_bar_print_width-2-__int_process) << ']' << std::flush;
+                if ( __verbose ) {
+                    cout << "\r[";
+                    for (int i = 0; i < __int_process; ++i) cout << '=';
+                    cout << '>';
+                    cout << std::right << std::setw(__status_bar_print_width-2-__int_process) << ']' << std::flush;
+                }
 
                 async_req = sftp_async_read_begin( __file, MAX_XFER_BUF_SIZE );
             }
@@ -135,26 +133,26 @@ sftpStat sftpSession::get(const std::string_view& source, const std::string_view
         // remove file if error happens
         if ( nbytes < 0 ) {
             this->seterrno( sftp_get_error(_sftp_session) );
-            errMgr.setErrArg( file_src );
+            errMgr.setErrArg( file_src.get() );
             sftp_close( __file );
             if ( fptr ) {
                 fclose( fptr );
-                remove( file_dst );
+                remove( file_dst.get() );
             }
-            delete [] file_src;
-            delete [] file_dst;
             delete [] nEscFile2;
             return SFTP_GET_ERROR;
         }
 
         // transfer successful, GREEN COLOR!
-        cout << NORMAL_GREEN << "\r[";
-        for (int i = 0; i < __status_bar_print_width-3; ++i) cout << '=';
-        cout << ">]";
+        if ( __verbose ) {
+            cout << NORMAL_GREEN << "\r[";
+            for (int i = 0; i < __status_bar_print_width-3; ++i) cout << '=';
+            cout << ">]";
+        }
 
     } // fetch complete
 
-    printf("\t%.3f sec.\n%s", __elpased_time/1000, COLOR_RESET);
+    if ( __verbose ) printf("\t%.3f sec.\n%s", __elpased_time/1000, COLOR_RESET);
     // cout << "waited for " << count * WAIT_INTERVAL / 1000 << " ms during transmission" << endl;
 
     // close the written file
@@ -163,18 +161,14 @@ sftpStat sftpSession::get(const std::string_view& source, const std::string_view
     // close the file handler
     if ( sftp_close(__file) != SSH_OK ) {
         this->seterrno( sftp_get_error(_sftp_session) );
-        errMgr.setErrArg( file_src );
-        delete [] file_src;
-        delete [] file_dst;
+        errMgr.setErrArg( file_src.get() );
         delete [] nEscFile2;
         return SFTP_CLOSEFILE_ERROR;
     }
 
     // last, make sure the fetched file is in correct mode
-    chmod( file_dst, (mode_t)attr->permissions );
+    chmod( file_dst.get(), (mode_t)attr->permissions );
 
-    delete [] file_src;
-    delete [] file_dst;
     delete [] nEscFile2;
     return SFTP_OK;
 }
@@ -183,27 +177,23 @@ sftpStat sftpSession::get(const std::string_view& source, const std::string_view
 sftpStat sftpSession::get_recursive(const std::string_view& source, const std::string_view& destination, bool force) const {
 
     // create c_str for c API
-    char* file_src = new char[source.size()+1];
-    memcpy( file_src, &source.front(), source.size() );
+    std::unique_ptr<char[]> file_src = std::make_unique<char[]>(source.size()+1);
+    std::unique_ptr<char[]> file_dst = std::make_unique<char[]>(destination.size()+1);
+    memcpy( file_src.get(), &source.front(), source.size() );
+    memcpy( file_dst.get(), &destination.front(), destination.size() );
     file_src[source.size()] = '\0';
-    char* file_dst = new char[destination.size()+1];
-    memcpy( file_dst, &destination.front(), destination.size() );
     file_dst[destination.size()] = '\0';
 
     std::vector<sftp_attributes> attrs;
-    sftpStat returnStat = this->readDir( file_src, attrs );
+    sftpStat returnStat = this->readDir( file_src.get(), attrs );
     if ( returnStat == SFTP_OK ) { // directory
-        auto mkdir_result = mkdir(file_dst, 0755);
+        auto mkdir_result = mkdir(file_dst.get(), 0755);
         if ( mkdir_result != 0 && errno == EEXIST && !force ) {
-            errMgr.setErrArg( file_dst );
-            delete [] file_src;
-            delete [] file_dst;
+            errMgr.setErrArg( file_dst.get() );
             return SFTP_GET_ERROR;
         }
         else if ( mkdir_result != 0 && errno != EEXIST ) {
-            errMgr.setErrArg( file_dst );
-            delete [] file_src;
-            delete [] file_dst;
+            errMgr.setErrArg( file_dst.get() );
             return SFTP_GET_ERROR;
         }
         for (auto& attr : attrs) {
@@ -211,29 +201,24 @@ sftpStat sftpSession::get_recursive(const std::string_view& source, const std::s
             if ( strcmp(attr->name, "..") == 0 ) continue;
             size_t newSrcSize = source.size()+strlen(attr->name)+2;
             size_t newDstSize = destination.size()+strlen(attr->name)+2;
-            char* newSrc = new char[newSrcSize];
-            char* newDst = new char[newDstSize];
+            std::unique_ptr<char[]> newSrc = std::make_unique<char[]>(newSrcSize);
+            std::unique_ptr<char[]> newDst = std::make_unique<char[]>(newDstSize);
             if ( source.back() == '/' ) {
-                snprintf( newSrc, newSrcSize, "%s%s", file_src, attr->name );
-                snprintf( newDst, newDstSize, "%s%s", file_dst, attr->name );
+                snprintf( newSrc.get(), newSrcSize, "%s%s", file_src.get(), attr->name );
+                snprintf( newDst.get(), newDstSize, "%s%s", file_dst.get(), attr->name );
             }
             else {
-                snprintf( newSrc, newSrcSize, "%s/%s", file_src, attr->name );
-                snprintf( newDst, newDstSize, "%s/%s", file_dst, attr->name );
+                snprintf( newSrc.get(), newSrcSize, "%s/%s", file_src.get(), attr->name );
+                snprintf( newDst.get(), newDstSize, "%s/%s", file_dst.get(), attr->name );
             }
-            this->get_recursive( std::string_view(newSrc), std::string_view(newDst), force );
+            this->get_recursive( std::string_view(newSrc.get()), std::string_view(newDst.get()), force );
             sftp_attributes_free( attr );
-            delete [] newSrc;
-            delete [] newDst;
         }
     }
     else { // other files or illegal files, leave error pasring to the next level
-        returnStat = this->get( source, destination, force );
+        returnStat = this->get( source, destination, force, false );
     }
 
-
-    delete [] file_src;
-    delete [] file_dst;
     return returnStat;
 }
 
@@ -246,17 +231,17 @@ sftpStat sftpSession::get_recursive(const std::string_view& source, const std::s
 sftpStat sftpSession::put(const std::string_view& source, const std::string_view& destination, bool force) const {
 
     // create c_str for c API
-    char* file_src = new char[source.size()+1];
-    memcpy( file_src, &source.front(), source.size() );
+    std::unique_ptr<char[]> file_src = std::make_unique<char[]>(source.size()+1);
+    std::unique_ptr<char[]> file_dst = std::make_unique<char[]>(destination.size()+1);
+    memcpy( file_src.get(), &source.front(), source.size() );
+    memcpy( file_dst.get(), &destination.front(), destination.size() );
     file_src[source.size()] = '\0';
-    char* file_dst = new char[destination.size()+1];
-    memcpy( file_dst, &destination.front(), destination.size() );
     file_dst[destination.size()] = '\0';
 
-    char* nEscFile1 = UTIL::rmEscChar( file_src );
-    char* nEscFile2 = UTIL::rmEscChar( file_dst );
-    const char* p_file_src = nEscFile1 == NULL ? file_src : nEscFile1;
-    const char* p_file_dst = nEscFile2 == NULL ? file_dst : nEscFile2;
+    char* nEscFile1 = UTIL::rmEscChar( file_src.get() );
+    char* nEscFile2 = UTIL::rmEscChar( file_dst.get() );
+    const char* p_file_src = nEscFile1 == NULL ? file_src.get() : nEscFile1;
+    const char* p_file_dst = nEscFile2 == NULL ? file_dst.get() : nEscFile2;
 
     // concatenate path
     snprintf(fullpath, PATH_BUF_MAX, "%s/%s", _pwd.c_str(), p_file_dst);
@@ -270,9 +255,7 @@ sftpStat sftpSession::put(const std::string_view& source, const std::string_view
         // -- doesn't matter which kind of error is returned,
         //    the cmdExec class will check for SFTP_OK or not and return cmdExecError on any sftp error
         // -- errno wil be set automatically
-        errMgr.setErrArg( file_src );
-        delete [] file_src;
-        delete [] file_dst;
+        errMgr.setErrArg( file_src.get() );
         delete [] nEscFile1;
         return SFTP_GET_ERROR;
     }
@@ -284,10 +267,8 @@ sftpStat sftpSession::put(const std::string_view& source, const std::string_view
     if ( __file == NULL ) {
         // set errno properly
         this->seterrno( SSH_FX_FILE_ALREADY_EXISTS );
-        errMgr.setErrArg( file_dst );
+        errMgr.setErrArg( file_dst.get() );
         if ( fptr ) fclose( fptr );
-        delete [] file_src;
-        delete [] file_dst;
         delete [] nEscFile1;
         return SFTP_READFILE_ERROR;
     }
@@ -322,10 +303,8 @@ sftpStat sftpSession::put(const std::string_view& source, const std::string_view
         // remove file if error happens
         // THERE ARE NO API TO REMOVE REMOTE FILES
         if ( nbytes < 0 ) {
-            errMgr.setErrArg( file_src );
+            errMgr.setErrArg( file_src.get() );
             if ( fptr ) fclose( fptr );
-            delete [] file_src;
-            delete [] file_dst;
             delete [] nEscFile1;
             return SFTP_READFILE_ERROR;
         }
@@ -342,9 +321,7 @@ sftpStat sftpSession::put(const std::string_view& source, const std::string_view
     // close the written file
     if ( sftp_close(__file) != SSH_OK ) {
         this->seterrno( sftp_get_error(_sftp_session) );
-        errMgr.setErrArg( file_dst );
-        delete [] file_src;
-        delete [] file_dst;
+        errMgr.setErrArg( file_dst.get() );
         delete [] nEscFile1;
         return SFTP_CLOSEFILE_ERROR;
     }
@@ -352,8 +329,6 @@ sftpStat sftpSession::put(const std::string_view& source, const std::string_view
     // close the file handler 
     fclose( fptr );
 
-    delete [] file_src;
-    delete [] file_dst;
     delete [] nEscFile1;
     return SFTP_OK;
 }

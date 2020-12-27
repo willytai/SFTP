@@ -9,6 +9,7 @@
 //      i.e. make --recursive works
 
 typedef std::vector<std::string> vecstr;
+typedef std::vector<std::string_view> vecstr_view;
 
 /*************/
 /* for local */
@@ -22,7 +23,7 @@ public:
     lcdCmd() { UTIL::getHomeDir(&_home); }
     ~lcdCmd() {}
 
-    cmdStat execute(const std::string&) const;
+    cmdStat execute(const std::string_view&) const;
     void    usage()   const;
     void    help()    const;
 

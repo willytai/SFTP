@@ -14,7 +14,8 @@ extern errorMgr errMgr;
 /* getCmd */
 /**********/
 // this command can only accpet signle target
-cmdStat getCmd::execute(const std::string& option) const {
+// TODO support flags concatenation
+cmdStat getCmd::execute(const std::string_view& option) const {
     std::vector<std::string_view> tokens;
     UTIL::parseTokens( option, tokens );
     if ( !flags::checkOpts( tokens, this ) ) {
@@ -73,7 +74,7 @@ void getCmd::help() const {
 /**********/
 /* putCmd */
 /**********/
-cmdStat putCmd::execute(const std::string& option) const {
+cmdStat putCmd::execute(const std::string_view& option) const {
     std::vector<std::string_view> tokens;
     UTIL::parseTokens( option, tokens );
     if ( !flags::checkOpts( tokens, this ) ) {
@@ -132,7 +133,7 @@ void putCmd::help() const {
 /***********/
 /* mputCmd */
 /***********/
-cmdStat mputCmd::execute(const std::string& option) const {
+cmdStat mputCmd::execute(const std::string_view& option) const {
     return CMD_DONE;
 }
 
@@ -148,7 +149,7 @@ void mputCmd::help() const {
 /***********/
 /* mgetCmd */
 /***********/
-cmdStat mgetCmd::execute(const std::string& option) const {
+cmdStat mgetCmd::execute(const std::string_view& option) const {
     return CMD_DONE;
 }
 

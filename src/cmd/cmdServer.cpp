@@ -8,7 +8,7 @@ extern errorMgr errMgr;
 /* lsCmd */
 /*********/
 // TODO support single-file listing and wildcard listing
-cmdStat lsCmd::execute(const std::string& option) const {
+cmdStat lsCmd::execute(const std::string_view& option) const {
     /*************************************************
      * -- Split with ' '
      * -- Any tokens that doesn't start with '-' will
@@ -18,10 +18,10 @@ cmdStat lsCmd::execute(const std::string& option) const {
      **************************************************/
 
     // parse tokens
-    vecstr tokens;
+    vecstr_view tokens;
     UTIL::parseTokens(option, tokens);
 
-    vecstr queryDir;
+    vecstr_view queryDir;
     std::string flags;
     for (const auto& tok : tokens) {
         if ( tok[0] != '-' ) queryDir.push_back(tok);
@@ -29,7 +29,7 @@ cmdStat lsCmd::execute(const std::string& option) const {
     }
 
     // default listing directory
-    if ( queryDir.size() == 0 ) queryDir.push_back("./");
+    if ( queryDir.size() == 0 ) queryDir.emplace_back( DEFAULT_DIR );
 
     // the printer
     sftp::Printer* dirPrinter = new sftp::Printer( errMgr.colorOutput() );
@@ -57,7 +57,7 @@ cmdStat lsCmd::execute(const std::string& option) const {
             std::swap(dir, queryDir.back());
             queryDir.pop_back();
         }
-        else if ( (*_sftp_sess_ptr)->readDir(dir.c_str(), check.first->second) == sftp::SFTP_OK ) {
+        else if ( (*_sftp_sess_ptr)->readDir(dir, check.first->second) == sftp::SFTP_OK ) {
             std::swap(dir, queryDir.back());
             queryDir.pop_back();
         }
@@ -108,14 +108,14 @@ void lsCmd::help() const {
 /*********/
 // TODO: support "cd old new"
 //       this part is pretty bad, copying strings at most three times
-cmdStat cdCmd::execute(const std::string& option) const {
-    vecstr tokens;
+cmdStat cdCmd::execute(const std::string_view& option) const {
+    vecstr_view tokens;
     UTIL::parseTokens(option, tokens);
     if ( tokens.size() > 1 ) {
         errMgr.setErrCmd("cd");
         return CMD_ARG_TOO_MANY;
     }
-    std::string target = tokens.size() == 0 ? "" : tokens[0];
+    const std::string_view& target = tokens.size() == 0 ? "" : tokens[0];
     if ( (*_sftp_sess_ptr)->cd(target) != sftp::SFTP_OK ) {
         errMgr.setErrCmd("cd");
         errMgr.setErrArg( target );
@@ -136,7 +136,7 @@ void cdCmd::help() const {
 /************/
 /* mkdirCmd */
 /************/
-cmdStat mkdirCmd::execute(const std::string& option) const {
+cmdStat mkdirCmd::execute(const std::string_view& option) const {
     return CMD_DONE;
 }
 
@@ -151,7 +151,7 @@ void mkdirCmd::help() const {
 /*********/
 /* rmCmd */
 /*********/
-cmdStat rmCmd::execute(const std::string& option) const {
+cmdStat rmCmd::execute(const std::string_view& option) const {
     return CMD_DONE;
 }
 
@@ -166,7 +166,7 @@ void rmCmd::help() const {
 /************/
 /* chmodCmd */
 /************/
-cmdStat chmodCmd::execute(const std::string& option) const {
+cmdStat chmodCmd::execute(const std::string_view& option) const {
     return CMD_DONE;
 }
 

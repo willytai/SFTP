@@ -79,6 +79,13 @@ bool readDir(const char* dir, std::vector<std::pair<std::string, bool> >& contai
     return true;
 }
 
+bool readDir(const std::string_view& dir, std::vector<std::pair<std::string, bool> >& container) {
+    std::unique_ptr<char[]> char_dir = std::make_unique<char[]>(dir.size()+1);
+    memcpy( char_dir.get(), dir.data(), dir.size() );
+    char_dir.get()[dir.size()] = '\0';
+    return readDir( char_dir.get(), container );
+}
+
 // returns the entire entries' structure
 bool readDir(const char* dir, std::vector<dirent*>& container) {
     char* nEscDir = rmEscChar( dir );
@@ -90,6 +97,13 @@ bool readDir(const char* dir, std::vector<dirent*>& container) {
         container.push_back(direntry);
     }
     return true;
+}
+
+bool readDir(const std::string_view& dir, std::vector<dirent*>& container) {
+    std::unique_ptr<char[]> char_dir = std::make_unique<char[]>(dir.size()+1);
+    memcpy( char_dir.get(), dir.data(), dir.size() );
+    char_dir[dir.size()] = '\0';
+    return readDir( char_dir.get(), container );
 }
 
 /*

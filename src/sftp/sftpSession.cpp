@@ -227,13 +227,17 @@ sftpStat sftpSession::initSFTP() {
 
 // sftp does not have the conecpt of "pwd"
 // the working directory is will be stored locally
-sftpStat sftpSession::cd(const std::string& path) {
+sftpStat sftpSession::cd(const std::string_view& path) {
     if ( path.size() == 0 ) { // back to $HOME
         _pwd = _home;
     }
 
-    char* nEscDir = UTIL::rmEscChar( path.c_str() );
-    const char* pdir = nEscDir == NULL ? path.c_str() : nEscDir;
+    std::unique_ptr<char[]> char_path = std::make_unique<char[]>(path.size()+1);
+    memcpy( char_path.get(), path.data(), path.size() );
+    char_path[path.size()] = '\0';
+
+    char* nEscDir = UTIL::rmEscChar( char_path.get() );
+    const char* pdir = nEscDir == NULL ? char_path.get() : nEscDir;
 
     // concatenate path
     snprintf(fullpath, PATH_BUF_MAX, "%s/%s", _pwd.c_str(), pdir);
@@ -290,9 +294,12 @@ sftpStat sftpSession::cd(const std::string& path) {
     ssh_string extended_data;
  }*/
 // This function is for autoComplete ONLY!!!!
-sftpStat sftpSession::readDir(const std::string& dir, std::vector<std::pair<std::string, bool> >& container) const {
-    char* nEscDir = UTIL::rmEscChar( dir.c_str() );
-    std::string fulldir = nEscDir == NULL ? _pwd+"/"+dir : _pwd+"/"+std::string(nEscDir);
+sftpStat sftpSession::readDir(const std::string_view& dir, std::vector<std::pair<std::string, bool> >& container) const {
+    std::unique_ptr<char[]> char_dir = std::make_unique<char[]>(dir.size()+1);
+    memcpy( char_dir.get(), dir.data(), dir.size() );
+    char_dir[dir.size()] = '\0';
+    char* nEscDir = UTIL::rmEscChar( char_dir.get() );
+    std::string fulldir = nEscDir == NULL ? _pwd+"/"+std::string(dir) : _pwd+"/"+std::string(nEscDir);
     if ( nEscDir ) delete [] nEscDir;
 
     sftp_dir curdir;
@@ -321,6 +328,13 @@ sftpStat sftpSession::readDir(const std::string& dir, std::vector<std::pair<std:
     }
 
     return SFTP_OK;
+}
+
+sftpStat sftpSession::readDir(const std::string_view& dir, std::vector<sftp_attributes>& container) const {
+    std::unique_ptr<char[]> char_dir = std::make_unique<char[]>(dir.size()+1);
+    memcpy( char_dir.get(), dir.data(), dir.size() );
+    char_dir[dir.size()] = '\0';
+    return this->readDir( char_dir.get(), container );
 }
 
 // remember to call sftp_attributes_free after using this function

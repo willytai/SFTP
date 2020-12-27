@@ -74,11 +74,11 @@ argStat cmdParser::parseArgs(int argc, char** argv) {
     if ( argc == 2 ) {
         if ( argv[1][0] == '-' ) return ARG_PARSE_CMD_PARSER_ONLY;
         // check username and server address
-        std::vector<std::string> tokens;
+        std::vector<std::string_view> tokens;
         UTIL::parseTokens( argv[1], tokens, '@');
         _sftp_sess = new sftp::sftpSession();
-        _sftp_sess->setUsrName( tokens[0].c_str(), tokens[0].size() );
-        _sftp_sess->setHostIP ( tokens[1].c_str(), tokens[1].size() );
+        _sftp_sess->setUsrName( tokens[0].data(), tokens[0].size() );
+        _sftp_sess->setHostIP ( tokens[1].data(), tokens[1].size() );
         return ARG_PARSE_DONE;
     }
     #ifdef DEV
@@ -145,42 +145,76 @@ cmdStat cmdParser::readChar(std::istream& stream) {
 /*******************************/
 // TODO check if commands contain illegal keywords i.e. non-alphabetical characters
 //      string optimized!
-cmdStat cmdParser::regEachCmd(std::string cmd, size_t minCmp, cmdExec* cmdHandler) {
+cmdStat cmdParser::regEachCmd(const char* cmd, size_t minCmp, cmdExec* cmdHandler) {
     // check for ambiguity
-    std::string tmp = cmd;
+    std::string_view tmp = cmd;
     while (true) {
         cmdExec* cmdCheck;
         if ( (cmdCheck = this->getCmdHandler(tmp)) ) {
-            fprintf(stderr, "Ambiguity detected for command \'%s\' and \'%s%s\'\n",
-                    cmd.c_str(),
-                    cmdCheck->getKeyWord(),
-                    cmdCheck->getOptional());
+            fprintf(stderr, "Ambiguity detected for command \'%s\' and \'%s\'\n",
+                    cmd,
+                    cmdCheck->getCmdStrData());
             fprintf(stderr, "Check the \'minCmp\' variable in cmdClass.cpp\n");
             return CMD_REG_FAIL;
         }
         if ( tmp.size() == minCmp ) break;
-        tmp.resize(tmp.size()-1);
+        tmp.remove_suffix(1);
     }
 
     // set its keyword, optional string, and register cmd
-    std::string_view optional_view( (cmd.c_str()+minCmp), cmd.size()-minCmp);
-    cmdHandler->setOptional( optional_view );
-    std::string_view keyword_view( cmd.c_str(), minCmp);
-    cmdHandler->setKeyWord( keyword_view );
-    auto check = _cmdMap.emplace( tmp, cmdHandler );
+    cmdHandler->setCmdStr( cmd );
+    cmdHandler->setKeyWordOptional( minCmp );
+    auto check = _cmdMap.emplace( cmdHandler->getKeyWordView(), cmdHandler );
 
     if ( check.second ) return this->regEachCmdOption(cmdHandler);
     else {
-        fprintf(stderr, "Command keyword conflict in command \'%s\', \'%s%s\'\n",
-                cmd.c_str(),
-                check.first->first.c_str(),
-                check.first->second->getOptional());
+        fprintf(stderr, "Command keyword conflict in command \'%s\', \'%s\'\n",
+                cmd,
+                check.first->second->getCmdStrData());
         return CMD_REG_FAIL;
     }
 }
 
 // analyze the command keyword and its option
 cmdStat cmdParser::interpretateAndExecute() const {
+    size_t buflen = (size_t)(_bufEnd - _buf);
+
+    // get rid of leading white spaces
+    const char* buf_start = _buf;
+    while ( buflen ) {
+        if ( *buf_start != SPACE_CHAR ) break;
+        buf_start += 1;
+        buflen -= 1;
+    }
+
+    // get rid of trailing white spaces
+    const char* buf_end = _bufEnd-1;
+    while ( buflen ) {
+        if ( *buf_end != SPACE_CHAR ) break;
+        if ( *buf_end == SPACE_CHAR && *(buf_end-1) == ESCAPE_CHAR ) break;
+        buf_end -= 1;
+        buflen -= 1;
+    }
+
+    if ( !buflen ) return CMD_DONE;
+
+    std::string_view buf_view( buf_start, buflen );
+    size_t w_index = buf_view.find_first_of(' ');
+    w_index = w_index == std::string::npos ? buf_view.size() : w_index;
+    std::string_view cmd_view = buf_view.substr( 0, w_index );
+    std::string_view opt_view = buflen < 2 ? EMPTY_STRING
+                                           : w_index <= buf_view.size()-2 ? buf_view.substr( w_index+1 )
+                                                                          : EMPTY_STRING;
+    // get rid of leading white spaces in opt_view
+    opt_view = opt_view.size() ? opt_view.substr( opt_view.find_first_not_of(' ') ) : opt_view;
+
+    cmdExec* cmdHandler;
+    if ( (cmdHandler = this->getCmdHandler(cmd_view)) == NULL )
+        return CMD_ERROR;
+    else
+        return cmdHandler->execute(opt_view);
+
+    /*
     size_t optEnd = _bufEnd - _buf;
 
     // dummy check first
@@ -200,6 +234,7 @@ cmdStat cmdParser::interpretateAndExecute() const {
     cmdExec* cmdHandler;
     if ( (cmdHandler = this->getCmdHandler(tokens[0])) == NULL ) return CMD_ERROR;
     else return cmdHandler->execute(tokens[1]);
+    */
 }
 
 /**************************************
@@ -209,15 +244,15 @@ cmdStat cmdParser::interpretateAndExecute() const {
  *    the query string has to be at   *
  *    least as long as the keyword    *
  *************************************/
-cmdExec* cmdParser::getCmdHandler(const std::string& cmd) const {
+cmdExec* cmdParser::getCmdHandler(const std::string_view& cmd) const {
     for (const auto& pair : _cmdMap) {
-        const auto& cmdHandler = pair.second;
         const auto& keyword    = pair.first;
-        const auto& optional   = cmdHandler->getOptionalStr();
+        const auto& cmdHandler = pair.second;
+        const auto& cmdstr     = cmdHandler->getCmdStr();
 
-        if ( cmd.length() > keyword.length()+optional.length() ) continue;
+        if ( cmd.length() > cmdstr.length() ) continue;
         if ( cmd.length() < keyword.length() ) continue;
-        if ( UTIL::strNcmp(cmd, keyword+optional, cmd.size()) == 0 ) {
+        if ( UTIL::strNcmp(cmd, cmdstr, cmd.size()) == 0 ) {
             return cmdHandler;
         }
     }
@@ -344,12 +379,11 @@ void cmdParser::deleteChar() {
 
 // complete commands or file paths or just tabs
 void cmdParser::autoComplete() {
-    size_t buflen = _bufPtr - _buf;
+    size_t buflen = (size_t)(_bufPtr - _buf);
     char* buf     = (char*)malloc((buflen+1)*sizeof(char));
-    std::vector<std::string> tokens;
+    std::vector<std::string_view> tokens;
     UTIL::substr( _buf, buf, 0, buflen );
     UTIL::parseTokens(buf, tokens);
-    free(buf);
     if ( tokens.empty() ) {
         this->insertChar(' ', TAB_STOP);
     }
@@ -373,15 +407,16 @@ void cmdParser::autoComplete() {
             this->rePrintBuf();
         }
     }
+    free(buf);
 }
 
-void cmdParser::completeCmd(const std::string& prtCmd) {
+void cmdParser::completeCmd(const std::string_view& prtCmd) {
     int printWidth = MATCH_KEY_OUTPUT_MIN_WIDTH;
 
     // second entry in each element indicates whether
     // the matched item is a direcotry
     // store the entire command instead of just the keyword
-    std::vector<std::pair<std::string, bool> > matched;
+    std::vector<std::pair<std::string_view, bool> > matched;
     for (const auto& pair : _cmdMap) {
         const auto& handler = pair.second;
         const auto& fullkey = handler->getCmdStr();
@@ -396,7 +431,7 @@ void cmdParser::completeCmd(const std::string& prtCmd) {
         bell();
     }
     else if ( matched.size() == 1 ) { // found match, complete
-        this->insertStr( matched[0].first.substr(prtCmd.size()).c_str(),
+        this->insertStr( matched[0].first.substr(prtCmd.size()).data(),
                          matched[0].first.size()-prtCmd.size() );
         this->insertChar(' ');
     }
@@ -421,7 +456,7 @@ void cmdParser::completeCmd(const std::string& prtCmd) {
             this->showMatched( matched, printWidth );
         }
         else { // extend matched string
-            this->insertStr( matched[0].first.substr(prtCmd.size(), matchIdEnd-prtCmd.size()).c_str(),
+            this->insertStr( matched[0].first.substr(prtCmd.size(), matchIdEnd-prtCmd.size()).data(),
                              matchIdEnd-prtCmd.size() );
         }
     }
@@ -430,20 +465,21 @@ void cmdParser::completeCmd(const std::string& prtCmd) {
 // TODO zsh-like tab selection
 // TODO when prtPath starts with '/', make sure it reads from absolute path
 // TODO place '\' before a space/parathesis in a filename that contains them
-cmpltStat cmdParser::completePath(const std::string& prtPath, short scope, bool dirOnly) {
+cmpltStat cmdParser::completePath(const std::string_view& prtPath, short scope, bool dirOnly) {
     int printWidth = MATCH_KEY_OUTPUT_MIN_WIDTH;
 
     // the second entry in each element indicates whether
     // the matched item is a direcotry
+    // the matched entries need to be stored entirly (string_view NOT OK!)
     std::vector<std::pair<std::string, bool> > matched;
 
     // make sure to read the correct dir
-    std::string targetDir, prtFile;
+    std::string_view targetDir, prtFile;
     UTIL::splitPathFile(prtPath, targetDir, prtFile);
 
     // read from the current scope
     cmpltStat stat = sftp::SFTP_OK;
-    if ( scope == LOCAL )  UTIL::readDir(targetDir.c_str(), matched);
+    if ( scope == LOCAL )  UTIL::readDir(targetDir, matched);
     if ( scope == REMOTE ) stat = this->_sftp_sess->readDir(targetDir, matched);
     if ( stat   != sftp::SFTP_OK ) return stat;
 
@@ -513,7 +549,7 @@ cmpltStat cmdParser::completePath(const std::string& prtPath, short scope, bool 
             //    re-insert the matched string to activate case-insensitive comparison,
             //    otherwise, keep the original prtFile
             bool caseConsistent = true;
-            const std::string& ref = matched.front().first;
+            const auto& ref = matched.front().first;
             for (size_t i = 1; i < matched.size(); ++i) {
                 if ( UTIL::strNcmp(ref, matched[i].first, matchIdEnd) != 0 ) {
                     caseConsistent = false;
@@ -526,7 +562,7 @@ cmpltStat cmdParser::completePath(const std::string& prtPath, short scope, bool 
                 this->insertStr( matched.front().first.c_str(), matchIdEnd );
             }
             else {
-                this->insertStr( matched.front().first.substr(prtFile.size(), matchIdEnd-prtFile.size()).c_str(),
+                this->insertStr( matched.front().first.substr(prtFile.size(), matchIdEnd-prtFile.size()).data(),
                                  matchIdEnd-prtFile.size());
             }
         }
@@ -534,7 +570,8 @@ cmpltStat cmdParser::completePath(const std::string& prtPath, short scope, bool 
     return stat;
 }
 
-void cmdParser::showMatched(const std::vector<std::pair<std::string, bool> >& matched, int printWidth) {
+template<typename T>
+void cmdParser::showMatched(const T& matched, int printWidth) {
     printWidth += 3;
     int twidth = UTIL::getTermWidth();
     int nItms  = twidth / printWidth;

@@ -67,10 +67,11 @@ public:
     sftpStat start();
 
     const char* pwd() const;
-    sftpStat    cd(const std::string&);
-    sftpStat    readDir(const std::string&, std::vector<std::pair<std::string, bool> >&) const;
+    sftpStat    cd(const std::string_view&);
+    sftpStat    readDir(const std::string_view&, std::vector<std::pair<std::string, bool> >&) const;
+    sftpStat    readDir(const std::string_view&, std::vector<sftp_attributes>&) const;
     sftpStat    readDir(const char*, std::vector<sftp_attributes>&) const;
-    sftpStat    get(const std::string_view&, const std::string_view&, bool) const;
+    sftpStat    get(const std::string_view&, const std::string_view&, bool, bool __verbose=true) const;
     sftpStat    get_recursive(const std::string_view&, const std::string_view&, bool) const;
     sftpStat    put(const std::string_view&, const std::string_view&, bool) const;
     sftpStat    put_recursive(const std::string_view&, const std::string_view&, bool) const;

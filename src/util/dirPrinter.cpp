@@ -4,6 +4,8 @@
 #include <cstddef>
 #include <string>
 #include <vector>
+#include <charconv>
+#include <cassert>
 
 namespace LISTING
 {
@@ -244,7 +246,9 @@ bool Printer::longPrint(const char* dirName, const Files& entries) const {
 
     int w_nlink = 0, w_usrname = 0, w_grname = 0, w_size = 0;
 
-    std::vector<std::vector<std::string> > vecToken;
+    // create some buffers to hold the size in human readable format
+    std::vector<std::string> entSizebuf; entSizebuf.resize( entries.size() );
+    std::vector<std::vector<std::string_view> > vecToken;
     vecToken.resize( entries.size() );
     for (size_t i = 0; i < entries.size(); ++i) {
         UTIL::parseTokens( entries[i]->longname, vecToken[i] );
@@ -254,16 +258,18 @@ bool Printer::longPrint(const char* dirName, const Files& entries) const {
 
         if ( PRINT_HUM ) {
             w_size = 4;
-            double size_h = (double)std::stoi(vecToken[i][4]);
-            char   unit;
-            UTIL::toHuman(&size_h, &unit);
-            char* tmp = (char*)malloc(4*sizeof(char));
-            snprintf(tmp, 4, "%.f%c", size_h, unit);
-            vecToken[i][4] = std::string(tmp);
-            free(tmp);
+            int size_h;
+            auto[p, ec] = std::from_chars( vecToken[i][4].data(), vecToken[i][4].data()+vecToken[i][4].size(), size_h );
+            assert( ec == std::errc() );
+            double size_h_float = (double)size_h;
+            char unit;
+            UTIL::toHuman(&size_h_float, &unit);
+            entSizebuf[i].reserve( 5 );
+            snprintf( entSizebuf[i].data(), 5, "%.f%c", size_h_float, unit );
+            vecToken[i][4] = std::string_view( entSizebuf[i] );
         }
         else {
-            w_size = std::max(w_size, UTIL::wLength(vecToken[i][4].c_str()));
+            w_size = std::max(w_size, (int)vecToken[i][4].size());
         }
     }
 

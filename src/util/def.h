@@ -1,11 +1,12 @@
-#ifndef __DEF_F__
-#define __DEF_F__
+#ifndef __DEF_H__
+#define __DEF_H__
 
 #include <iomanip>
 #include <ios>
 #include <iostream>
 #include <fstream>
 #include "Usage.h"
+#include "memUtil.h"
 
 using std::cin;
 using std::cerr;
@@ -15,6 +16,9 @@ using std::left;
 using std::right;
 using std::setw;
 using std::istream;
+
+extern char DEFAULT_DIR[];
+extern char EMPTY_STRING[];
 
 #define BOLD_BLACK      "\033[1;30m"
 #define BOLD_RED        "\033[1;31m"
@@ -48,4 +52,4 @@ using std::istream;
 #define SPACE_CHAR ' '
 #define WILDCARD_CHAR '*'
 
-#endif /* __DEF_F__ */
+#endif /* __DEF_H__ */
